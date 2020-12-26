@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
 import argparse
-from .chess_com_hook import User
+from chess_com_hook import User
 
 
 app = Flask('NextMove')

@@ -13,7 +13,9 @@ archive_url = 'https://api.chess.com/pub/player/'
 class User(Resource):
     @staticmethod
     def post():
+        print('handling request')
         json = request.get_json(force=True)
+        print(json)
         user_name = json['userName']
         print('User received: ', user_name)
         cg = ChessGames(user_name)
