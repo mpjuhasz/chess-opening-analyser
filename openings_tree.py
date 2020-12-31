@@ -20,6 +20,7 @@ class NMOpening(object):
         self.children = dict()
         self.heads = dict()
         self.occurrence = 1
+        self.wins = 0
         self.last_moves = dict()
 
     def add_child(self, child_tuple: Tuple[str, int]):
@@ -63,7 +64,7 @@ class NMOpeningTree(object):
             print('Error in tree: opening present multiple times.', ops)
         return ops
 
-    def add_opening(self, name: str, move: int, last_move='', child=(), head=()):
+    def add_opening(self, name: str, move: int, result=0, last_move='', child=(), head=()):
         """
         Adds a new opening, or updates an existing one. Updates the occurrence and the children and heads.
         """
@@ -75,6 +76,7 @@ class NMOpeningTree(object):
             new_op = NMOpening(name, move)
             self.openings.append(new_op)
 
+        new_op.wins += result
         if child:
             new_op.add_child(child)
         if head:
@@ -94,11 +96,13 @@ class NMOpeningTree(object):
         return finals[:5]
 
 class NMGameOpenings(object):
-    def __init__(self, openings: List[Tuple[str, int]], last_move: str, opening_end_pos: str, colour_played: str):
+    def __init__(self, openings: List[Tuple[str, int]], last_move: str, opening_end_pos: str, colour_played: str,
+                 result: int):
         self.openings = openings
         self.last_move = last_move
         self.opening_end_pos = opening_end_pos
         self.colour_played = colour_played
+        self.result = result
 
     def load_into_tree(self, tree: NMOpeningTree):
         total_openings = len(self.openings)
@@ -108,7 +112,7 @@ class NMGameOpenings(object):
             head = self.openings[op_idx-1] if op_idx-1 != -1 else ()
             child = self.openings[op_idx+1] if op_idx+1 < total_openings else ()
             last_move = self.last_move if op_idx+1 == total_openings else ''
-            tree.add_opening(name, moves, last_move, child, head)
+            tree.add_opening(name, moves, self.result, last_move, child, head)
 
 
 class OpeningsTreeBuilder(object):
@@ -137,18 +141,28 @@ class OpeningsTreeBuilder(object):
         colour_played = 'W' if game.headers['White'] == user_name else 'B'
         move = 0
         end_of_opening = False
-        nmo = NMGameOpenings([], '', '', colour_played)
+        result = 1 if user_name + ' won' in game.headers['Termination'] else 0
+        nmo = NMGameOpenings([], '', '', colour_played, result)
         total_moves = len(list(game.mainline()))
-        while not end_of_opening:
+        extra_moves = 0
+        while extra_moves < 4 or not end_of_opening:
             end_of_opening = True
             if move < total_moves:
                 fen = list(game.mainline())[move].board().fen().split('-')[0] + '-'
-                nmo.last_move = list(game.mainline())[move].uci()
-                nmo.opening_end_pos = fen
+                if extra_moves == 0:
+                    nmo.last_move = list(game.mainline())[move].uci()
+                    nmo.opening_end_pos = fen
                 if fen in list(self.eco_db['fen']):
                     ind = list(self.eco_db['fen']).index(fen)
                     end_of_opening = False
                     nmo.openings.append((self.eco_db.loc[ind]['name'], len(self.eco_db.loc[ind]['moves'].split(' '))))
+                    if extra_moves > 1:
+                        print(nmo.openings[-1][0], '... from ...', nmo.openings[-2][0])
+                    extra_moves = 0
+                else:
+                    extra_moves += 1
+            else:
+                extra_moves += 1
             move += 1
         return nmo
 
@@ -175,8 +189,29 @@ class OpeningsTreeBuilder(object):
             most_white = max(self.tree_white.ops_by_move(i+1), key=lambda x: x.occurrence)
             print('black: ', most_black.name, most_black.moves, most_black.occurrence)
             print('white: ', most_white.name, most_white.moves, most_white.occurrence)
-        print([(to.name, to.moves, to.occurrence) for to in self.tree_white.get_top_openings()])
-        print([(to.name, to.moves, to.occurrence) for to in self.tree_black.get_top_openings()])
+        print('------------------------------------------')
+        for tup in [(to.name, to.moves, to.occurrence, to.wins, to.last_moves, to.children) for to in
+                    self.tree_white.get_top_openings()]:
+            print(tup[0])
+            print(' - moves: ', tup[1])
+            print(' - wins: ', tup[3], '/', tup[2])
+            print(' - last moves: ', tup[4])
+            children = [tc for tc in tup[5]]
+            print(' - changed into: ', children)
+        print('------------------------------------------')
+        for tup in [(to.name, to.moves, to.occurrence, to.wins, to.last_moves, to.children) for to in
+                    self.tree_black.get_top_openings()]:
+            print(tup[0])
+            print(' - moves: ', tup[1])
+            print(' - wins: ', tup[3], '/', tup[2])
+            print(' - last moves: ', tup[4])
+            children = [tc for tc in tup[5]]
+            print(' - changed into: ', children)
+        print(game_nmo.openings)
+        print(game_nmo.last_move)
+        print(game_nmo.opening_end_pos)
+        print(game_nmo.colour_played)
+
 
 otb = OpeningsTreeBuilder()
 

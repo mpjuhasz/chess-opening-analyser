@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_restful import Api, Resource
 import argparse
 from chess_com_hook import User
+from openings_tree import OTB
 
 
 app = Flask('NextMove')
@@ -15,6 +16,7 @@ class GetHandler(Resource):
 
 api.add_resource(GetHandler, "/get")
 api.add_resource(User, "/post")
+api.add_resource(OTB, "/openings/get")
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--prod', action='store_true')

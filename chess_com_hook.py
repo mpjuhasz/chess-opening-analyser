@@ -2,26 +2,14 @@ import chess.pgn
 import requests
 import json
 import io
+import os
 import pandas as pd
 from flask_restful import Api, Resource
 from flask import request, Response, jsonify
-
+from datetime import datetime
 
 archive_url = 'https://api.chess.com/pub/player/'
-
-
-class User(Resource):
-    @staticmethod
-    def post():
-        print('handling request')
-        json = request.get_json(force=True)
-        print(json)
-        user_name = json['userName']
-        print('User received: ', user_name)
-        cg = ChessGames(user_name)
-        cg.get_all_games()
-        print('Number of games: ', len(cg.games))
-
+cache_dir = './cache/'
 
 class ChessGames(object):
     def __init__(self, user_name: str):
@@ -54,10 +42,35 @@ class ChessGames(object):
         return [chess.pgn.read_game(io.StringIO(game_pgn)) for game_pgn in games]
 
     def get_all_games(self):
-        archs = self.get_archives()
-        req_list = self.game_urls(archs)
-        games = []
-        for req_url in req_list:
-            games += self.get_game(req_url)
+        if not os.path.exists(cache_dir + self.user_name + '.txt'):
+            archs = self.get_archives()
+            req_list = self.game_urls(archs)
+            games = []
+            for req_url in req_list:
+                games += self.get_game(req_url)
+            with open(cache_dir + self.user_name + '.txt', 'w', encoding='utf-8') as f:
+                json.dump(games, f, ensure_ascii=False, indent=4)
+        else:
+            print('cached stuff...')
+            with open(cache_dir + self.user_name + '.txt', 'r', encoding='utf-8') as f:
+                games = json.load(f)
         parsed_games = self.parse_games(games)
         self.games = parsed_games
+
+
+cg = ChessGames('')
+
+
+class User(Resource):
+    @staticmethod
+    def post():
+        print('handling request')
+        json = request.get_json(force=True)
+        print(json)
+        user_name = json['userName']
+        print('User received: ', user_name)
+        start_time = datetime.now()
+        cg.user_name = user_name
+        cg.get_all_games()
+        print('Got games in: ', datetime.now() - start_time)
+        print('Number of games: ', len(cg.games))
