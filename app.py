@@ -2,7 +2,7 @@ from flask import Flask, request
 from flask_restful import Api, Resource
 import argparse
 from chess_com_hook import User
-from openings_tree import OTB
+from openings_tree_builder import OTB
 
 
 app = Flask('NextMove')
