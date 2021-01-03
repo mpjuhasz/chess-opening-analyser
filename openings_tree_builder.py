@@ -8,7 +8,7 @@ from tqdm import trange
 from openings_tree import NMOpening, NMOpeningTree, NMGameOpenings
 from stockfish_hook import stockfish_best_move
 
-def print_tree_debug(tree: NMOpeningTree, type='top', limit_ratio=0.45):
+def print_tree_debug(tree: NMOpeningTree, type='top', limit_ratio=1):
     print('------------------------------------------')
     ops = []
     if type == 'top':
@@ -107,8 +107,8 @@ class OpeningsTreeBuilder(object):
         #     print('white: ', most_white.name, most_white.moves, most_white.occurrence)
         print_tree_debug(self.tree_white, type='top')
         print_tree_debug(self.tree_black, type='top')
-        print_tree_debug(self.tree_white, type='worst')
-        print_tree_debug(self.tree_black, type='worst')
+        print_tree_debug(self.tree_white, type='worst', limit_ratio=0.45)
+        print_tree_debug(self.tree_black, type='worst', limit_ratio=0.45)
         # print(game_nmo.openings)
         # print(game_nmo.last_move)
         # print(game_nmo.opening_end_pos)
