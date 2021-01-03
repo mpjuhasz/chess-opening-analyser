@@ -8,18 +8,26 @@ from tqdm import trange
 from openings_tree import NMOpening, NMOpeningTree, NMGameOpenings
 from stockfish_hook import stockfish_best_move
 
-def print_tree_debug(tree: NMOpeningTree):
+def print_tree_debug(tree: NMOpeningTree, type='top', limit_ratio=0.45):
     print('------------------------------------------')
-    for tup in [(to.name, to.moves, to.occurrence, to.wins, to.last_moves, to.children, to.final_pos, to.ucis) for to in
-                tree.get_top_openings()]:
+    ops = []
+    if type == 'top':
+        ops = tree.get_top_openings()
+    elif type == 'worst':
+        ops = tree.get_worst_openings(limit_ratio)
+
+    colour = 'WHITE' if tree.colour == 'W' else 'BLACK'
+
+    print('TYPE: ', type.upper())
+    for tup in [(to.opening_id, to.moves, to.occurrence, to.wins, to.last_moves, to.children, to.final_pos, to.ucis)
+                for to in ops]:
         print(tup[0])
         print(' - moves: ', tup[7], '(', tup[1], ')')
         print(' - wins: ', tup[3], '/', tup[2])
         print(' - last moves: ', tup[4])
         best_move = stockfish_best_move(tup[6])
-        print(' - best move is: ', best_move)
-        children = [tc for tc in tup[5]]
-        print(' - changed into: ', children)
+        print(' - best move is: ', best_move[1], '(score: ', best_move[0].pov(colour).score(mate_score=1000), ')')
+        print(' - changed into: ', tup[5])
 
 
 class OpeningsTreeBuilder(object):
@@ -49,7 +57,7 @@ class OpeningsTreeBuilder(object):
         move = 0
         end_of_opening = False
         result = 1 if user_name + ' won' in game.headers['Termination'] else 0
-        nmo = NMGameOpenings([], '', '', colour_played, result, '')
+        nmo = NMGameOpenings([], '', '', colour_played, result, '', game.headers['Date'])
         total_moves = len(list(game.mainline()))
         extra_moves = 0
         while extra_moves < 4 or not end_of_opening:
@@ -92,17 +100,19 @@ class OpeningsTreeBuilder(object):
                     game_nmo.load_into_tree(self.tree_white)
                 else:
                     game_nmo.load_into_tree(self.tree_black)
-        for i in range(0, 5):
-            most_black = max(self.tree_black.ops_by_move(i+1), key=lambda x: x.occurrence)
-            most_white = max(self.tree_white.ops_by_move(i+1), key=lambda x: x.occurrence)
-            print('black: ', most_black.name, most_black.moves, most_black.occurrence)
-            print('white: ', most_white.name, most_white.moves, most_white.occurrence)
-        print_tree_debug(self.tree_white)
-        print_tree_debug(self.tree_black)
-        print(game_nmo.openings)
-        print(game_nmo.last_move)
-        print(game_nmo.opening_end_pos)
-        print(game_nmo.colour_played)
+        # for i in range(0, 5):
+        #     most_black = max(self.tree_black.ops_by_move(i+1), key=lambda x: x.occurrence)
+        #     most_white = max(self.tree_white.ops_by_move(i+1), key=lambda x: x.occurrence)
+        #     print('black: ', most_black.name, most_black.moves, most_black.occurrence)
+        #     print('white: ', most_white.name, most_white.moves, most_white.occurrence)
+        print_tree_debug(self.tree_white, type='top')
+        print_tree_debug(self.tree_black, type='top')
+        print_tree_debug(self.tree_white, type='worst')
+        print_tree_debug(self.tree_black, type='worst')
+        # print(game_nmo.openings)
+        # print(game_nmo.last_move)
+        # print(game_nmo.opening_end_pos)
+        # print(game_nmo.colour_played)
 
 
 otb = OpeningsTreeBuilder()
