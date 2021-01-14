@@ -15,11 +15,14 @@ def print_tree_debug(tree: NMOpeningTree, type='top', limit_ratio=1):
         ops = tree.get_top_openings()
     elif type == 'worst':
         ops = tree.get_worst_openings(limit_ratio)
+    elif type == 'best_score':
+        ops = tree.get_best_scoring(2)
 
     colour = 'WHITE' if tree.colour == 'W' else 'BLACK'
 
     print('TYPE: ', type.upper())
-    for tup in [(to.opening_id, to.moves, to.occurrence, to.wins, to.last_moves, to.children, to.final_pos, to.ucis)
+    for tup in [(to.opening_id, to.moves, to.occurrence, to.wins, to.last_moves,
+                 to.children, to.final_pos, to.ucis, to.later_scores)
                 for to in ops]:
         print(tup[0])
         print(' - moves: ', tup[7], '(', tup[1], ')')
@@ -28,6 +31,11 @@ def print_tree_debug(tree: NMOpeningTree, type='top', limit_ratio=1):
         best_move = stockfish_best_move(tup[6])
         print(' - best move is: ', best_move[1], '(score: ', best_move[0].pov(colour).score(mate_score=1000), ')')
         print(' - changed into: ', tup[5])
+        scores = []
+        for ls in tup[8].keys():
+            scores.append(sum(tup[8][ls]) / len(tup[8][ls]))
+        print(' - scores:', scores)
+        print(' - scores:', tup[8])
 
 
 class OpeningsTreeBuilder(object):
@@ -57,15 +65,17 @@ class OpeningsTreeBuilder(object):
         move = 0
         end_of_opening = False
         result = 1 if user_name + ' won' in game.headers['Termination'] else 0
-        nmo = NMGameOpenings([], '', '', colour_played, result, '', game.headers['Date'])
+        nmo = NMGameOpenings([], '', '', colour_played, result, '', game.headers['Date'], [])
         total_moves = len(list(game.mainline()))
         extra_moves = 0
+        last_move = 0
         while extra_moves < 4 or not end_of_opening:
             end_of_opening = True
             if move < total_moves:
                 fen = list(game.mainline())[move].board().fen().split('-')[0] + '-'
                 if extra_moves == 0:
                     nmo.last_move = list(game.mainline())[move].uci()
+                    last_move = move
                 if fen in list(self.eco_db['fen']):
                     ind = list(self.eco_db['fen']).index(fen)
                     end_of_opening = False
@@ -80,6 +90,13 @@ class OpeningsTreeBuilder(object):
             else:
                 extra_moves += 1
             move += 1
+
+        for fen_move in range(last_move, total_moves):
+            if (fen_move % 2 == 0 and colour_played == 'W') or (fen_move % 2 == 1 and colour_played == 'B')\
+                    and fen_move < last_move + 5:
+                fen = list(game.mainline())[fen_move].board().fen().split('-')[0] + '-'
+                nmo.later_fens.append(fen)
+
         return nmo
 
     def __call__(self, cg_processed: ChessGames):
@@ -109,6 +126,8 @@ class OpeningsTreeBuilder(object):
         print_tree_debug(self.tree_black, type='top')
         print_tree_debug(self.tree_white, type='worst', limit_ratio=0.45)
         print_tree_debug(self.tree_black, type='worst', limit_ratio=0.45)
+        print_tree_debug(self.tree_black, type='best_score')
+        print_tree_debug(self.tree_black, type='best_score')
         # print(game_nmo.openings)
         # print(game_nmo.last_move)
         # print(game_nmo.opening_end_pos)
