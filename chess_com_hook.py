@@ -32,7 +32,7 @@ class ChessGames(object):
         monthly = requests.get(url)
         if 'games' in monthly.json().keys():
             monthly = monthly.json()['games']
-            monthly = [game['pgn'] for game in monthly]
+            monthly = [game['pgn'] for game in monthly if 'pgn' in game.keys()] # This shouldn't really be the case
             return monthly
         print('No games...')
         return []
