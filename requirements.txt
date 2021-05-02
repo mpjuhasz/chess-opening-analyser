@@ -1,0 +1,6 @@
+chess
+networkx
+tqdm
+flask-restful
+requests
+pandas

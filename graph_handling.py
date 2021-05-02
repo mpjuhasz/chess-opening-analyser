@@ -7,6 +7,7 @@ from eco_db_handling import eco_lookup, eco_db
 from flask_restful import Resource
 from tqdm import trange
 from chess_com_hook import cg, ChessGames
+from datetime import datetime
 import json
 
 
@@ -91,7 +92,7 @@ def process_games(chess_games: ChessGames, trees: Dict[str, nx.DiGraph]):
 
 def graph_presentation(graph: nx.DiGraph) -> dict:
     # total_occ = sum([nd.occurrence for nd in graph.nodes])
-    nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence) for nd in graph.nodes]
+    nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence, nd.fen) for nd in graph.nodes]
     edges = [(edge[0].name, edge[1].name, graph[edge[0]][edge[1]]['weight']) for edge in graph.edges]
     return {'nodes': nodes, 'edges': edges}
 
@@ -99,12 +100,16 @@ def graph_presentation(graph: nx.DiGraph) -> dict:
 class GraphBuilder(Resource):
     @staticmethod
     def get():
+        s_time = datetime.now()
         print('Handling request...')
         process_games(cg, trees)
+        output = {}
         for graph_type in trees.keys():
             graph = trees[graph_type]
             graph_json = graph_presentation(graph)
+            output[graph_type] = graph_json
             # print(graph_json)
-            with open('./poliver' + graph_type + '.json', 'w') as file:
-                json.dump(graph_json, file)
-        print('Done!')
+            # with open('./matyasj' + graph_type + '.json', 'w') as file:
+            #     json.dump(graph_json, file)
+        print('Done in ', datetime.now() - s_time)
+        return output

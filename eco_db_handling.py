@@ -5,8 +5,8 @@ from chess.pgn import Game
 from chess_com_hook import ChessGames
 from flask_restful import Resource
 from tqdm import trange
-from openings_tree import NMOpening, NMOpeningTree, NMGameOpenings
-from stockfish_hook import stockfish_best_move
+# from openings_tree import NMOpening, NMOpeningTree, NMGameOpenings
+# from stockfish_hook import stockfish_best_move
 
 
 
