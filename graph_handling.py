@@ -1,5 +1,6 @@
 from openings_graph import trees, root_fen
 from openings_node import OpeningNode
+from stockfish_hook import stockfish_probability
 from chess.pgn import Game
 from typing import Optional, Dict, List
 import networkx as nx
@@ -8,6 +9,7 @@ from flask_restful import Resource
 from tqdm import trange
 from chess_com_hook import cg, ChessGames
 from datetime import datetime
+
 import json
 
 
@@ -23,7 +25,21 @@ def node_by_fen(fen: str, graph: nx.DiGraph) -> Optional[OpeningNode]:
     return None
 
 
-def get_opening_node(game: Game, move: int, user_name: str, graph: nx.DiGraph) -> Optional[OpeningNode]:
+def opening_score_handler(game: Game, move: int, node: OpeningNode, result: int, colour_played: str):
+    """Adds the user score based on the user score after 'n' moves. If the game ended, then the result is used."""
+    n = 3
+    mainline = list(game.mainline())
+    if move + n > len(mainline) - 1:
+        print(node.name, float(result))
+        node.add_score(float(result))
+    else:
+        score = stockfish_probability(mainline[move + n].board(), colour_played)
+        print(node.name, score)
+        node.add_score(score)
+
+
+def get_opening_node(game: Game, move: int, user_name: str, graph: nx.DiGraph,
+                     colour_played: str) -> Optional[OpeningNode]:
     """For a move in a game creates the OpeningNode if it doesn't exits yet. Otherwise passes."""
     fen = list(game.mainline())[move].board().fen().split('-')[0] + '-'
     if fen in list(eco_db['fen']):
@@ -36,6 +52,7 @@ def get_opening_node(game: Game, move: int, user_name: str, graph: nx.DiGraph) -
         else:
             eco, name, moves, num_moves = eco_lookup(fen)
             node = OpeningNode(name, num_moves, fen, eco, result)
+        opening_score_handler(game, move, node, result, colour_played)
         return node
     return None
 
@@ -56,6 +73,8 @@ def handle_edging(source_node: OpeningNode, target_node: OpeningNode, graph: nx.
 
 def add_game_to_graph(trees: Dict[str, nx.DiGraph], game: Game, user_name: str):
     """Takes a Game object and adds it to the OpeningsGraph creating all necessary nodes and linking that's required"""
+    if game.end().board().uci_variant != 'chess':
+        return
     colour_played = 'W' if game.headers['White'] == user_name else 'B'
     graph = trees[colour_played]
     total_moves = len(list(game.mainline()))
@@ -66,7 +85,7 @@ def add_game_to_graph(trees: Dict[str, nx.DiGraph], game: Game, user_name: str):
         end_of_opening = True
         if move < total_moves:
             end_of_opening = False
-            node = get_opening_node(game, move, user_name, graph)
+            node = get_opening_node(game, move, user_name, graph, colour_played)
             if node is not None:
                 end_of_opening = False
                 graph.add_node(node)
@@ -92,7 +111,7 @@ def process_games(chess_games: ChessGames, trees: Dict[str, nx.DiGraph]):
 
 def graph_presentation(graph: nx.DiGraph) -> dict:
     # total_occ = sum([nd.occurrence for nd in graph.nodes])
-    nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence, nd.fen) for nd in graph.nodes]
+    nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence, nd.get_opening_score(), nd.fen) for nd in graph.nodes]
     edges = [(edge[0].name, edge[1].name, graph[edge[0]][edge[1]]['weight']) for edge in graph.edges]
     return {'nodes': nodes, 'edges': edges}
 
