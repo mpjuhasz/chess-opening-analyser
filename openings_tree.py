@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from stockfish_hook import stockfish_best_move
 
+
 def op_id(name: str, moves: int):
     return str(name) + ' - ' + str(moves)
 
@@ -124,6 +125,7 @@ class NMOpeningTree(object):
                   if move in op.later_scores.keys()]
         finals.sort(key=lambda x: x[1], reverse=False)
         return [op[0] for op in finals[:5]]
+
 
 class NMGameOpenings(object):
     def __init__(self, openings: List[Tuple[str, int]], last_move: str, opening_end_pos: str, colour_played: str,

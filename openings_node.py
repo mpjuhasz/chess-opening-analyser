@@ -1,6 +1,7 @@
 from chess.pgn import Game
 from typing import List
 
+
 def op_id(name: str, moves: int):
     return str(name) + ' - ' + str(moves)
 

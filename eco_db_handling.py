@@ -9,11 +9,11 @@ from tqdm import trange
 # from stockfish_hook import stockfish_best_move
 
 
-
 def build_eco_db() -> DataFrame:
     openings = pd.read_json('./eco/openings.json')
     print('Loaded eco data:', len(openings))
     return openings
+
 
 eco_db = build_eco_db()
 

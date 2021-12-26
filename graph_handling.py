@@ -30,11 +30,9 @@ def opening_score_handler(game: Game, move: int, node: OpeningNode, result: int,
     n = 3
     mainline = list(game.mainline())
     if move + n > len(mainline) - 1:
-        print(node.name, float(result))
         node.add_score(float(result))
     else:
         score = stockfish_probability(mainline[move + n].board(), colour_played)
-        print(node.name, score)
         node.add_score(score)
 
 
@@ -111,8 +109,18 @@ def process_games(chess_games: ChessGames, trees: Dict[str, nx.DiGraph]):
 
 def graph_presentation(graph: nx.DiGraph) -> dict:
     # total_occ = sum([nd.occurrence for nd in graph.nodes])
-    nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence, nd.get_opening_score(), nd.fen) for nd in graph.nodes]
-    edges = [(edge[0].name, edge[1].name, graph[edge[0]][edge[1]]['weight']) for edge in graph.edges]
+    nodes = [
+        {'name': nd.name,
+         'win_perc': nd.wins / nd.occurrence,
+         'occurrence': nd.occurrence,
+         'opening_score': nd.get_opening_score(),
+         'fen': nd.fen,
+         'move': nd.num_moves,
+         'last_moves': nd.last_moves,
+         'eco': nd.eco}
+        for nd in graph.nodes]
+    # nodes = [(nd.name, nd.occurrence, nd.wins / nd.occurrence, nd.get_opening_score(), nd.fen) for nd in graph.nodes]
+    edges = [(edge[0].fen, edge[1].fen, graph[edge[0]][edge[1]]['weight']) for edge in graph.edges]
     return {'nodes': nodes, 'edges': edges}
 
 
@@ -128,7 +136,7 @@ class GraphBuilder(Resource):
             graph_json = graph_presentation(graph)
             output[graph_type] = graph_json
             # print(graph_json)
-            # with open('./matyasj' + graph_type + '.json', 'w') as file:
-            #     json.dump(graph_json, file)
+            with open('./matyasj_new' + graph_type + '.json', 'w') as file:
+                json.dump(graph_json, file)
         print('Done in ', datetime.now() - s_time)
         return output

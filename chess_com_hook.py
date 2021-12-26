@@ -11,6 +11,7 @@ from datetime import datetime
 archive_url = 'https://api.chess.com/pub/player/'
 cache_dir = './cache/'
 
+
 class ChessGames(object):
     def __init__(self, user_name: str):
         self.user_name = user_name
@@ -32,7 +33,7 @@ class ChessGames(object):
         monthly = requests.get(url)
         if 'games' in monthly.json().keys():
             monthly = monthly.json()['games']
-            monthly = [game['pgn'] for game in monthly if 'pgn' in game.keys()] # This shouldn't really be the case
+            monthly = [game['pgn'] for game in monthly if 'pgn' in game.keys()]  # This shouldn't really be the case
             return monthly
         print('No games...')
         return []
@@ -41,11 +42,15 @@ class ChessGames(object):
     def parse_games(games):
         return [chess.pgn.read_game(io.StringIO(game_pgn)) for game_pgn in games]
 
-    def get_all_games(self):
+    def get_all_games(self, only_last_month: bool):
         if not os.path.exists(cache_dir + self.user_name + '.txt'):
             archs = self.get_archives()
             req_list = self.game_urls(archs)
             games = []
+            if only_last_month:
+                # print(req_list)
+                req_list = req_list[-1:]
+                # print(req_list)
             for req_url in req_list:
                 games += self.get_game(req_url)
             with open(cache_dir + self.user_name + '.txt', 'w', encoding='utf-8') as f:
@@ -68,9 +73,10 @@ class User(Resource):
         json = request.get_json(force=True)
         print(json)
         user_name = json['userName']
+        last_month = json.get('onlyLastMonth', False)
         print('User received: ', user_name)
         start_time = datetime.now()
         cg.user_name = user_name
-        cg.get_all_games()
+        cg.get_all_games(last_month)
         print('Got games in: ', datetime.now() - start_time)
         print('Number of games: ', len(cg.games))

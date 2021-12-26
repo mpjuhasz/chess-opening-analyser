@@ -15,6 +15,7 @@ class GetHandler(Resource):
     def get():
         return 'TASTES GOOD STILL'
 
+
 api.add_resource(GetHandler, "/get")
 api.add_resource(User, "/post")
 # api.add_resource(OTB, "/openings/get")
