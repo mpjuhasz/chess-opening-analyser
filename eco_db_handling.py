@@ -23,6 +23,6 @@ def eco_lookup(fen: str) -> Tuple[str, str, str, int]:
     ind = list(eco_db['fen']).index(fen)
     name = eco_db.loc[ind]['name']
     eco = eco_db.loc[ind]['eco']
-    num_moves =  len(eco_db.loc[ind]['moves'].split(' '))
+    num_moves = len(eco_db.loc[ind]['moves'].split(' '))
     moves = eco_db.loc[ind]['moves']
     return eco, name, moves, num_moves

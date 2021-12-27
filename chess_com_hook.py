@@ -8,8 +8,9 @@ from flask_restful import Api, Resource
 from flask import request, Response, jsonify
 from datetime import datetime
 
-archive_url = 'https://api.chess.com/pub/player/'
+
 cache_dir = './cache/'
+archive_url = 'https://api.chess.com/pub/player/'
 
 
 class ChessGames(object):

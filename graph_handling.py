@@ -69,12 +69,12 @@ def handle_edging(source_node: OpeningNode, target_node: OpeningNode, graph: nx.
 # ----------------------------------------------------------------------------------------------------------------------
 # GRAPH HANDLING
 
-def add_game_to_graph(trees: Dict[str, nx.DiGraph], game: Game, user_name: str):
+def add_game_to_graph(opening_trees: Dict[str, nx.DiGraph], game: Game, user_name: str):
     """Takes a Game object and adds it to the OpeningsGraph creating all necessary nodes and linking that's required"""
     if game.end().board().uci_variant != 'chess':
         return
     colour_played = 'W' if game.headers['White'] == user_name else 'B'
-    graph = trees[colour_played]
+    graph = opening_trees[colour_played]
     total_moves = len(list(game.mainline()))
     extra_moves, last_move, move = 0, 0, 0
     end_of_opening = False
@@ -127,6 +127,7 @@ def graph_presentation(graph: nx.DiGraph) -> dict:
 class GraphBuilder(Resource):
     @staticmethod
     def get():
+        """Builds and outputs the OpeningGraph based on the ChessGames object for the user."""
         s_time = datetime.now()
         print('Handling request...')
         process_games(cg, trees)
@@ -136,7 +137,7 @@ class GraphBuilder(Resource):
             graph_json = graph_presentation(graph)
             output[graph_type] = graph_json
             # print(graph_json)
-            with open('./matyasj_new' + graph_type + '.json', 'w') as file:
+            with open('./' + cg.user_name + '_new_' + graph_type + '.json', 'w') as file:
                 json.dump(graph_json, file)
         print('Done in ', datetime.now() - s_time)
         return output
