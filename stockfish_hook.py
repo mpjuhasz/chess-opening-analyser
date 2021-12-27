@@ -1,7 +1,7 @@
 import chess
 from typing import Tuple
 
-sf_path = '/Users/Matyi/Desktop/BigBiz/nextMove/stockfish_12_win_x64_avx2/stockfish_20090216_x64_avx2.exe'
+sf_path = input('Location of Stockfish: ')
 
 print('Loading Stockfish 12...')
 engine = chess.engine.SimpleEngine.popen_uci(sf_path)
