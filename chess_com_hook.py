@@ -3,14 +3,20 @@ import requests
 import json
 import io
 import os
-import pandas as pd
-from flask_restful import Api, Resource
-from flask import request, Response, jsonify
+from flask_restful import Resource
+from flask import request
 from datetime import datetime
+from pathlib import Path
+from tqdm import tqdm
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
-cache_dir = './cache/'
-archive_url = 'https://api.chess.com/pub/player/'
+CACHE_DIR = Path('./cache')
+ARCHIVE_URL = 'https://api.chess.com/pub/player/'
+GAMES_EXT = '/games/archives'
 
 
 class ChessGames(object):
@@ -19,48 +25,36 @@ class ChessGames(object):
         self.games = []
 
     def get_archives(self) -> dict:
-        games = requests.get(archive_url + self.user_name + '/games/archives')
+        games = requests.get(ARCHIVE_URL + self.user_name + GAMES_EXT)
         return games.json()
 
     @staticmethod
-    def game_urls(archives: dict) -> list:
-        if 'archives' in archives.keys():
-            req_list = archives['archives']
-            return req_list
-        return []
+    def get_game(url: str) -> list[str]:
+        monthly_archive = requests.get(url).json()
+        return [game.get("pgn", "") for game in monthly_archive.get("games", [])]
 
-    @staticmethod
-    def get_game(url: str) -> list:
-        monthly = requests.get(url)
-        if 'games' in monthly.json().keys():
-            monthly = monthly.json()['games']
-            monthly = [game['pgn'] for game in monthly if 'pgn' in game.keys()]  # This shouldn't really be the case
-            return monthly
-        print('No games...')
-        return []
+    def load_from_cache(self) -> list[str]:
+        with open(Path(CACHE_DIR / f"{self.user_name}.txt"), 'r', encoding='utf-8') as f:
+            games = json.load(f)
+        return games
 
-    @staticmethod
-    def parse_games(games):
-        return [chess.pgn.read_game(io.StringIO(game_pgn)) for game_pgn in games]
+    def cache_games(self, games: list[str]):
+        with open(Path(CACHE_DIR / f"{self.user_name}.txt"), 'w', encoding='utf-8') as f:
+            json.dump(games, f, ensure_ascii=False, indent=4)
 
     def get_all_games(self, only_last_month: bool):
-        if not os.path.exists(cache_dir + self.user_name + '.txt'):
-            archs = self.get_archives()
-            req_list = self.game_urls(archs)
+        if os.path.exists(CACHE_DIR / f"{self.user_name}.txt"):
+            games = self.load_from_cache()
+        else:
+            archives = self.get_archives()
+            req_list = archives.get("archives", [])
             games = []
             if only_last_month:
-                # print(req_list)
                 req_list = req_list[-1:]
-                # print(req_list)
-            for req_url in req_list:
+            for req_url in tqdm(req_list):
                 games += self.get_game(req_url)
-            with open(cache_dir + self.user_name + '.txt', 'w', encoding='utf-8') as f:
-                json.dump(games, f, ensure_ascii=False, indent=4)
-        else:
-            print('cached stuff...')
-            with open(cache_dir + self.user_name + '.txt', 'r', encoding='utf-8') as f:
-                games = json.load(f)
-        parsed_games = self.parse_games(games)
+            self.cache_games(games)
+        parsed_games = [chess.pgn.read_game(io.StringIO(game_pgn)) for game_pgn in games]
         self.games = parsed_games
 
 
@@ -81,3 +75,11 @@ class User(Resource):
         cg.get_all_games(last_month)
         print('Got games in: ', datetime.now() - start_time)
         print('Number of games: ', len(cg.games))
+
+
+if __name__ == "__main__":
+    start_time = datetime.now()
+    cg = ChessGames("matyasj")
+    cg.get_all_games(only_last_month=False)
+    print(f"Got games in {datetime.now() - start_time}")
+    print(f"Got {len(cg.games)} games")
