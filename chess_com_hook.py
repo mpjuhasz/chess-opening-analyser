@@ -8,7 +8,7 @@ from flask import request
 from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
-import logging
+import logger
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

@@ -1,28 +1,37 @@
 import pandas as pd
-from pandas import DataFrame
-from typing import Tuple
-from chess.pgn import Game
-from chess_com_hook import ChessGames
-from flask_restful import Resource
-from tqdm import trange
-# from openings_tree import NMOpening, NMOpeningTree, NMGameOpenings
-# from stockfish_hook import stockfish_best_move
+from logger import logger
 
 
-def build_eco_db() -> DataFrame:
-    openings = pd.read_json('./eco/openings.json')
-    print('Loaded eco data:', len(openings))
+def build_eco_db() -> pd.DataFrame:
+    openings = pd.read_json("./eco/openings.json")
+    logger.info(f"Loaded eco data: {len(openings)}")
     return openings
 
 
-eco_db = build_eco_db()
+def eco_lookup(fen: str, eco_db: pd.DataFrame) -> dict:
+    """
+    Looks up the fen in the database, and returns the ECO, name, moves and number of moves
+
+    Args:
+        fen (str): fen encoding of the board
+        eco_db (pd.DataFrame): database of eco openings
+
+    Returns:
+        row (dict): in the format of:
+        {
+            "eco": str,
+            "name": str,
+            "fen": str,
+            "moves": str,
+            "num_moves": int,
+        }
+    """
+    rows = eco_db[eco_db.fen == fen].to_dict(orient='records')
+    if rows:
+        row = rows[0]
+        row['num_moves'] = len(row.get('moves', '').split(' '))
+        return row
+    else:
+        return {}
 
 
-def eco_lookup(fen: str) -> Tuple[str, str, str, int]:
-    """Looks up the fen in the database, and returns the ECO, name, moves and number of moves"""
-    ind = list(eco_db['fen']).index(fen)
-    name = eco_db.loc[ind]['name']
-    eco = eco_db.loc[ind]['eco']
-    num_moves = len(eco_db.loc[ind]['moves'].split(' '))
-    moves = eco_db.loc[ind]['moves']
-    return eco, name, moves, num_moves
