@@ -8,10 +8,7 @@ from flask import request
 from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
-import logger
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from logger import logger
 
 
 CACHE_DIR = Path('./cache')
@@ -64,17 +61,17 @@ cg = ChessGames('')
 class User(Resource):
     @staticmethod
     def post():
-        print('handling request')
+        logger.info("handling request")
         json = request.get_json(force=True)
-        print(json)
+        logger.info(json)
         user_name = json['userName']
         last_month = json.get('onlyLastMonth', False)
-        print('User received: ', user_name)
+        logger.info(f"User received: {user_name}")
         start_time = datetime.now()
         cg.user_name = user_name
         cg.get_all_games(last_month)
-        print('Got games in: ', datetime.now() - start_time)
-        print('Number of games: ', len(cg.games))
+        logger.info(f"Got games in: {datetime.now() - start_time}")
+        logger.info(f"Number of games: {len(cg.games)}")
 
 
 if __name__ == "__main__":
