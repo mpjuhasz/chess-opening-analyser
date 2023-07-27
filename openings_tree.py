@@ -110,7 +110,7 @@ class NMOpeningTree(object):
     def get_top_openings(self):
         rem = 0 if self.colour == 'W' else 1
         finals = [op for op in self.openings if op.last_moves and op.moves % 2 == rem]
-        finals.sort(key=lambda x: sum(x.last_moves.values()), reverse=True)
+        finals.sort(key=lambda x: sum(x.following_moves.values()), reverse=True)
         return finals[:5]
 
     def get_worst_openings(self, limit_ratio):
