@@ -11,31 +11,23 @@ class GameProcessor(ABC):
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     @abstractmethod
-    def _get_game(self, *args, **kwargs) -> str:
+    def _get_games(self, *args, **kwargs) -> list[dict]:
         """Returns a single game from the platform in PGN format"""
 
-    @abstractmethod
-    def _get_archive(self, player_id: str, **kwargs) -> dict:
-        """Returns the game archive for a player with dates"""
-
     def _load_from_cache(self, player_id: str) -> list[str]:
-        with open(self.CACHE_DIR / f"{player_id}.json", 'r', encoding='utf-8') as f:
+        with open(self.CACHE_DIR / f"{player_id}.json", "r", encoding="utf-8") as f:
             games = json.load(f)
         return games
 
-    def _cache_games(self, player_id: str, games: list[str]):
-        with open(self.CACHE_DIR / f"{player_id}.json", 'w', encoding='utf-8') as f:
+    def _cache_games(self, player_id: str, games: list[dict]):
+        with open(self.CACHE_DIR / f"{player_id}.json", "w", encoding="utf-8") as f:
             json.dump(games, f, ensure_ascii=False, indent=4)
 
-    def get_all_games(self, player_id: str):
-        if Path(self.CACHE_DIR / f"{player_id}.json").exists():
+    def get_all_games(self, player_id: str, caching=True):
+        if Path(self.CACHE_DIR / f"{player_id}.json").exists() and caching:
             games = self._load_from_cache(player_id)
         else:
-            archive = self._get_archive(player_id)
-
-            games = []
-            for req_url in tqdm(archive.items()):
-                games += self._get_game(req_url)
-            self._cache_games(player_id, games)
+            games = self._get_games(player_id)
+            if caching:
+                self._cache_games(player_id, games)
         return games
-

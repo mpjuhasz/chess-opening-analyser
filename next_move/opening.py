@@ -12,6 +12,9 @@ class Opening(BaseModel):
     following_moves: dict[str, int] = defaultdict(int)
     following_game_scores: list[float] = []
 
+    def __hash__(self):
+        return self.fen
+
     def update_opening(
         self,
         date: datetime,
