@@ -1,7 +1,6 @@
 import requests
 from next_move.games import GameProcessor
 from itertools import chain
-from loguru import logger
 
 
 class ChessCom(GameProcessor):

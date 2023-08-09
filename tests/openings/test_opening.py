@@ -1,4 +1,4 @@
-from next_move.opening import Opening
+from next_move.openings.opening import Opening
 from datetime import datetime
 
 

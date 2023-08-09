@@ -11,11 +11,11 @@ def test_chess_com(mocker):
     game_str = load_game()
     mocker.patch(
         "next_move.games.chess_com.ChessCom._get_games_in_month",
-        return_value=[game_str]
+        return_value=[game_str],
     )
     mocker.patch(
         "next_move.games.chess_com.ChessCom._get_monthly_archive",
-        return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"]
+        return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"],
     )
     games_api = ChessCom()
     games = games_api._get_games("matyasj", months=["2023/06"])
@@ -36,11 +36,11 @@ def test_all_games(mocker):
     game_str = load_game()
     mocker.patch(
         "next_move.games.chess_com.ChessCom._get_games_in_month",
-        return_value=[game_str]
+        return_value=[game_str],
     )
     mocker.patch(
         "next_move.games.chess_com.ChessCom._get_monthly_archive",
-        return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"]
+        return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"],
     )
     games_api = ChessCom()
     games = games_api.get_all_games("matyasj", caching=False)
