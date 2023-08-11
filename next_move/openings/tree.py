@@ -1,20 +1,14 @@
-import networkx
-
-from opening import Opening
-
+from next_move.openings.opening import Opening
+from collections import defaultdict
 
 class Tree:
     def __init__(self):
-        self.graph = networkx.DiGraph()
-        self.graph.add_node(
-            Opening(
-                fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -", eco="ROOT"
-            )
+        self.root = Opening(
+            fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+            eco="ROOT"
         )
 
-    def add_opening(self, opening: Opening, head: Opening):
-        pass
+        self.graph = defaultdict(list)
 
-    @property
-    def _root(self):
+    def add_opening(self, opening: Opening, head: Opening = None):
         pass
