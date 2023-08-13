@@ -13,7 +13,7 @@ class Opening(BaseModel):
     following_game_scores: list[float] = []
 
     def __hash__(self):
-        return self.fen
+        return hash(self.fen)
 
     def update_opening(
         self,

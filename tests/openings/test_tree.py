@@ -8,5 +8,19 @@ def test_tree():
         fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
         eco="King's pawn"
     )
+
     tree.add_opening(first_opening)
-    assert tree.graph[tree.root][first_opening]['weight'] == 1
+    assert tree.graph[tree.root][first_opening] == 1
+    assert list(tree.graph.keys()) == [tree.root]
+    assert tree.graph[tree.root].most_common() == [(first_opening, 1)]
+
+
+def test_most_common_child():
+    tree = Tree()
+    first_opening = Opening(
+        fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+        eco="King's pawn"
+    )
+
+    tree.add_opening(first_opening)
+    assert tree.most_common_child(tree.root, 1) == [(first_opening, 1)]

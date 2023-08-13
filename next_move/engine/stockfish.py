@@ -22,12 +22,8 @@ class Stockfish:
     @staticmethod
     def _get_probability(info: dict, colour_played: str):
         if colour_played == "W":
-            return (
-                info["score"].white().wdl().wins / 1000
-                + info["score"].white().wdl().draws / 2000
-            )
+            score = info["score"].white()
         else:
-            return (
-                info["score"].black().wdl().wins / 1000
-                + info["score"].black().wdl().draws / 2000
-            )
+            score = info["score"].black()
+
+        return score.wdl().wins / 1000 + score.wdl().draws / 2000
