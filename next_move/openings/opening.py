@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 
 class Opening(BaseModel):
@@ -9,11 +9,19 @@ class Opening(BaseModel):
     dates: list[datetime] = []
     win_number: int = 0
     occurrence: int = 0
-    following_moves: dict[str, int] = defaultdict(int)
+    following_moves: Counter = Counter()
     following_game_scores: list[float] = []
 
     def __hash__(self):
         return hash(self.fen)
+
+    def __add__(self, other: "Opening"):
+        self.dates += other.dates
+        self.win_number += other.win_number
+        self.occurrence += other.occurrence
+        self.following_moves = self.following_moves + other.following_moves
+        self.following_game_scores += other.following_game_scores
+        return self
 
     def update_opening(
         self,
