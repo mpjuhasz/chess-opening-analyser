@@ -7,7 +7,16 @@ class Stockfish:
         self.engine = engine.SimpleEngine.popen_uci(stockfish_path)
         self.depth = analysis_depth
 
-    def get_best_move(self, fen: str):
+    def get_best_move(self, fen: str) -> dict[str, float | str]:
+        """
+        Gets the best next move for the given fen
+
+        Args:
+            fen (str): FEN of the board
+
+        Returns:
+            dict: {"score": chess.engine.Score, "move": str}: the best next move and corresponding score
+        """
         board = Board(fen=fen)
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
         return {
@@ -15,12 +24,13 @@ class Stockfish:
             "move": stockfish_analysis["pv"][0].uci(),
         }
 
-    def get_probability_of_win(self, board: Board, colour_played: str):
+    def get_probability_of_win(self, board: Board, colour_played: str) -> float:
+        """Gets the probability of winning for the coulour_played in the given board"""
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
         return self._get_probability(stockfish_analysis, colour_played)
 
     @staticmethod
-    def _get_probability(info: dict, colour_played: str):
+    def _get_probability(info: dict, colour_played: str) -> float:
         if colour_played == "W":
             score = info["score"].white()
         else:

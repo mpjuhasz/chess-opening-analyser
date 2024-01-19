@@ -1,9 +1,11 @@
 import requests
-from next_move.games import GameProcessor
+from next_move.games import GameRetriever
 from itertools import chain
 
 
-class ChessCom(GameProcessor):
+class ChessCom(GameRetriever):
+    """Chess.com game retriever responsible for retrieving games from chess.com"""
+
     GAMES_EXT = "games/archives"
     ARCHIVE_URL = "https://api.chess.com/pub/player"
 
