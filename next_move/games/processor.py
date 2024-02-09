@@ -1,0 +1,52 @@
+from next_move.openings.opening import Opening
+from next_move.openings.tree import Tree
+from next_move.engine.stockfish import Stockfish
+from next_move.opening_directory import EcoDB
+
+import io
+
+from datetime import datetime
+from chess.pgn import Game, read_game
+
+
+class GameProcessor:
+    """Processor to parse and analyse games, adding them to the opening tree"""
+    def __init__(self, tree: Tree, stockfish: Stockfish, eco_db: EcoDB, user: str):
+        self.tree = tree
+        self.stockfish = stockfish
+        self.user = user
+        self.eco_db = eco_db
+
+    def process_game(self, game_pgn: str):
+        """Processes a single game, adding the openings to the tree"""
+        game = self._read_game(game_pgn)
+        for idx, move in enumerate(game.mainline_moves()):
+            pass
+
+    @staticmethod
+    def _read_game(game_pgn: str) -> Game:
+        """Reads a game from a string"""
+        return read_game(io.StringIO(game_pgn))
+
+    def _extract_result(self, termination: str) -> float:
+        """Returns the final result of the game being 0 for a loss, 0.5 for a draw and 1 for a win"""
+        return 1 if self.user + ' won' in termination else 0.5 if "draw" in termination else 0
+
+    def _game_metadata(self, game: Game) -> int:
+        """
+        Extracts the metadata from the game
+        
+        Args:
+            game (Game): the game to extract the metadata from
+            
+        Returns:
+            dict[str, int | str]: the metadata in the format of:
+            {
+                "win": int,
+                "date": datetime,
+            }
+        """
+        return {
+            "result": self._extract_result(game.headers['Termination']),
+            "date": datetime.strptime(game.headers['Date'], "%Y.%m.%d"),
+        }
