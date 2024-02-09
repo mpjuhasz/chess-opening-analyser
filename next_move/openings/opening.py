@@ -17,6 +17,9 @@ class Opening(BaseModel):
     def __hash__(self):
         return hash(self.fen)
 
+    def __eq__(self, other: "Opening"):
+        return self.fen == other.fen
+
     def __repr__(self):
         return f"{self.eco} ({self.name})"
 

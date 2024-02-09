@@ -22,7 +22,7 @@ class Stockfish:
         return {
             "score": stockfish_analysis["score"],
             "best_move": stockfish_analysis["pv"][0].uci(),
-        }
+        }  # TODO this should return probability of winning, right now it's a PovScore
 
     def get_probability_of_win(self, board: Board, colour_played: str) -> float:
         """Gets the probability of winning for the coulour_played in the given board"""

@@ -14,7 +14,8 @@ def test_game_processing_results():
     
     assert metadata["result"] == 0.5
     assert metadata["date"].year == 2023
-    
+
+
 def test_game_processing():
     game_str = load_game()
     tree = Tree()
