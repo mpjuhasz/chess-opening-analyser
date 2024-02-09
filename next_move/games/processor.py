@@ -14,7 +14,7 @@ class GameProcessor:
     """Processor to parse and analyse games, adding them to the opening tree"""
     def __init__(self, tree: Tree, stockfish: Stockfish, eco_db: EcoDB, user: str):
         self.tree = tree
-        self.stockfish = stockfish
+        self.engine = stockfish
         self.user = user
         self.eco_db = eco_db
         # TODO the above ones should be moved out of the processor
@@ -43,7 +43,7 @@ class GameProcessor:
                 opening.update_opening(
                     **game_metadata,
                     following_move=move.uci(),
-                    **self.stockfish.get_best_move(fen, colour)
+                    **self.engine.get_best_move(fen, colour)
                 )
                 
                 self.tree.add_opening(opening, head=head)

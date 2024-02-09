@@ -1,17 +1,20 @@
 from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
 from tqdm import tqdm
+from pathlib import Path
+import json
 
 
 class Tree:
+    """
+    Tree of Openings objects
+    
+    It is a graph object with the starting board FEN at the root, being the parent of all starting openings.
+    An opening is a parent of another if there was a game in which the child followed the parent -- not
+    necessarily in the following move, but immediately in terms of openings. This means that the graph is
+    __not__ a DAG, because cycles can occur.
+    """
     def __init__(self):
-        self.root = Opening(
-            fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
-            eco="ROOT",
-            name="Root"
-        )
-
-        self.graph = defaultdict(Counter)
         self.nodes = {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": self.root}
         self.edges = defaultdict(Counter)
 
@@ -50,3 +53,35 @@ class Tree:
                 )
                 sankey_nodes.add(target)
         return sankey_nodes, sankey_links
+
+    def to_dict(self) -> dict:
+        """Parses the object into a dict"""
+        return {
+            "nodes": {k: v.dict() for k, v in self.nodes},
+            "edges": self.edges
+        }
+
+    def to_json(self, path: str) -> None:
+        """Saves the tree as a JSON"""
+        with open(path, "w") as f:
+            json.dump(self.to_dict(), path)
+
+    @property
+    def root(self):
+        return self.nodes["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"]
+
+    @classmethod
+    def from_json(cls, path: str) -> "Tree":
+        """Loads the tree from a JSON file"""
+        with open(path, "r") as f:
+            json_dict = json.load(f)
+        
+        tree = cls()
+        tree.nodes = {
+            fen: Opening(**opening) for fen, opening in json_dict["nodes"].items()
+        }
+        tree.edges = {
+            parent: Counter(targets) for parent, targets in json_dict["edges"]
+        }
+        
+        return tree
