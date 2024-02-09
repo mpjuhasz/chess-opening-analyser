@@ -23,16 +23,19 @@ class Opening(BaseModel):
         return self.fen == other.fen
 
     def __repr__(self):
-        return f"{self.eco} ({self.name}, {np.average(self.following_game_scores)}, {self.results})"
+        return f"{self.eco} ({self.name}, {np.average(self.following_game_scores):.2f}, {np.average(self.results):.2f})"
+
+    def __str__(self):
+        return self.__repr__()
 
     def __add__(self, other: "Opening"):
-        print(len(self.dates), len(self.results), len(other.dates), len(other.results))
         self.dates += other.dates
         self.results += other.results
         self.occurrence += other.occurrence
         self.following_moves = self.following_moves + other.following_moves
         self.following_game_scores += other.following_game_scores
-        assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
+        # TODO Stockfish is non-deterministic when running on multiple cores
+        # assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
         return self
 
     def update_opening(

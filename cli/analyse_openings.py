@@ -4,6 +4,8 @@ from next_move.openings.tree import Tree
 from next_move.games.processor import GameProcessor
 from next_move.opening_directory import EcoDB
 
+from pprint import pprint
+from tqdm import tqdm
 import click
 
 @click.command()
@@ -17,10 +19,10 @@ def create_tree(player_id: str, months: list[str] = None) -> Tree:
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
     
-    for game in games[:10]:
+    for game in tqdm(games[:200]):
         game_processor.process_game(game)
 
-    print(game_processor.tree)
+    pprint(game_processor.tree)
     return
 
 

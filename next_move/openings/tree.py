@@ -12,29 +12,25 @@ class Tree:
         )
 
         self.graph = defaultdict(Counter)
+        self.nodes = {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": self.root}
+        self.edges = defaultdict(Counter)
 
     def __repr__(self):
         string_repr = ""
         
-        for source, target_counter in self.graph.items():
-            string_repr += f"{source.eco} -> {target_counter}\n"
+        for parent_node, children in self.edges.items():
+            counter = {self.nodes[c]: count for c, count in children.items()}
+            string_repr += f"{self.nodes[parent_node]} -> {counter}\n"
         
         return string_repr
 
-    def add_opening(self, opening: Opening, head: Opening = None):
-        if not head:
-            head = self.root
-            
-        # TODO there's an issue here with the openings not updating as needed
-        # for key, value in self.graph.items():
-        #     if key == opening:
-        #         key += opening
-        #     for k, v in value.items():
-        #         if k == opening:
-        #             k += opening
-        #             v += 1
-
-        self.graph[head][opening] += 1
+    def add_opening(self, opening: Opening, head: Opening):
+        if opening.fen in self.nodes:
+            self.nodes[opening.fen] += opening
+        else:
+            self.nodes[opening.fen] = opening
+        
+        self.edges[head.fen][opening.fen] += 1
 
     def most_common_child(self, opening: Opening, n: int = 1):
         return self.graph[opening].most_common(n)
