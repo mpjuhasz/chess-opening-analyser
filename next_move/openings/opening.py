@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from datetime import datetime
 from collections import defaultdict, Counter
 
+import numpy as np
+
 
 class Opening(BaseModel):
     fen: str
@@ -21,9 +23,10 @@ class Opening(BaseModel):
         return self.fen == other.fen
 
     def __repr__(self):
-        return f"{self.eco} ({self.name})"
+        return f"{self.eco} ({self.name}, {np.average(self.following_game_scores)}, {self.results})"
 
     def __add__(self, other: "Opening"):
+        print(len(self.dates), len(self.results), len(other.dates), len(other.results))
         self.dates += other.dates
         self.results += other.results
         self.occurrence += other.occurrence

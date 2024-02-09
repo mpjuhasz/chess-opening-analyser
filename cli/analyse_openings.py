@@ -17,7 +17,7 @@ def create_tree(player_id: str, months: list[str] = None) -> Tree:
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
     
-    for game in games[:200]:
+    for game in games[:10]:
         game_processor.process_game(game)
 
     print(game_processor.tree)

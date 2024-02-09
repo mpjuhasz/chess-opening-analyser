@@ -2,6 +2,7 @@ from next_move.openings.opening import Opening
 from next_move.openings.tree import Tree
 from next_move.engine.stockfish import Stockfish
 from next_move.opening_directory import EcoDB
+from next_move.games import PlayerColour
 
 import io
 
@@ -16,15 +17,19 @@ class GameProcessor:
         self.stockfish = stockfish
         self.user = user
         self.eco_db = eco_db
+        # TODO the above ones should be moved out of the processor
 
-    def process_game(self, game_pgn: str):
+    def process_game(self, game_pgn: str) -> None:
         """Processes a single game, adding the openings to the tree"""
         game = self._read_game(game_pgn)
+        
+        colour = self._get_player_colour(game)
+        
         head = self.tree.root
         game_metadata = self._game_metadata(game)
         empty_moves = 0
 
-        for idx, move in enumerate(game.mainline()):
+        for move in game.mainline():
             if empty_moves > 5:
                 break
     
@@ -34,19 +39,21 @@ class GameProcessor:
 
             if openings_data:
                 opening = Opening(**openings_data)
-                
-                best_move_and_score = self.stockfish.get_best_move(fen)
-                
+
                 opening.update_opening(
                     **game_metadata,
                     following_move=move.uci(),
-                    **best_move_and_score
+                    **self.stockfish.get_best_move(fen, colour)
                 )
                 
                 self.tree.add_opening(opening, head=head)
                 head = opening
             else:
                 empty_moves += 1
+
+    def _get_player_colour(self, game: Game) -> PlayerColour:
+        """Gets the colour of the player in the game"""
+        return PlayerColour.W if game.headers['White'] == self.user else PlayerColour.B
 
     @staticmethod
     def _fen_parser(fen: str) -> str:
@@ -71,9 +78,9 @@ class GameProcessor:
             game (Game): the game to extract the metadata from
             
         Returns:
-            dict[str, int | str]: the metadata in the format of:
+            dict[str, float | str]: the metadata in the format of:
             {
-                "win": int,
+                "result": float,
                 "date": datetime,
             }
         """
@@ -84,4 +91,4 @@ class GameProcessor:
 
     def _extract_result(self, termination: str) -> float:
         """Returns the final result of the game being 0 for a loss, 0.5 for a draw and 1 for a win"""
-        return 1 if self.user + ' won' in termination else 0.5 if "draw" in termination else 0
+        return 1.0 if self.user + " won" in termination else 0.5 if "draw" in termination else 0.0

@@ -2,6 +2,12 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import json
 from tqdm import tqdm
+from enum import Enum
+
+
+class PlayerColour(Enum):
+    W = "White"
+    B = "Black"
 
 
 class GameRetriever(ABC):

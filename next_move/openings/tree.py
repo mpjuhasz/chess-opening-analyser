@@ -1,5 +1,6 @@
 from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
+from tqdm import tqdm
 
 
 class Tree:
@@ -23,6 +24,15 @@ class Tree:
     def add_opening(self, opening: Opening, head: Opening = None):
         if not head:
             head = self.root
+            
+        # TODO there's an issue here with the openings not updating as needed
+        # for key, value in self.graph.items():
+        #     if key == opening:
+        #         key += opening
+        #     for k, v in value.items():
+        #         if k == opening:
+        #             k += opening
+        #             v += 1
 
         self.graph[head][opening] += 1
 
