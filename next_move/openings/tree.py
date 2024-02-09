@@ -6,10 +6,19 @@ class Tree:
     def __init__(self):
         self.root = Opening(
             fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
-            eco="ROOT"
+            eco="ROOT",
+            name="Root"
         )
 
         self.graph = defaultdict(Counter)
+
+    def __repr__(self):
+        string_repr = ""
+        
+        for source, target_counter in self.graph.items():
+            string_repr += f"{source.eco} -> {target_counter}\n"
+        
+        return string_repr
 
     def add_opening(self, opening: Opening, head: Opening = None):
         if not head:

@@ -15,13 +15,13 @@ class Stockfish:
             fen (str): FEN of the board
 
         Returns:
-            dict: {"score": chess.engine.Score, "move": str}: the best next move and corresponding score
+            dict: {"score": chess.engine.Score, "best_move": str}: the best next move and corresponding score
         """
         board = Board(fen=fen)
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
         return {
             "score": stockfish_analysis["score"],
-            "move": stockfish_analysis["pv"][0].uci(),
+            "best_move": stockfish_analysis["pv"][0].uci(),
         }
 
     def get_probability_of_win(self, board: Board, colour_played: str) -> float:

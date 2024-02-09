@@ -20,19 +20,50 @@ class GameProcessor:
     def process_game(self, game_pgn: str):
         """Processes a single game, adding the openings to the tree"""
         game = self._read_game(game_pgn)
-        for idx, move in enumerate(game.mainline_moves()):
-            pass
+        head = self.tree.root
+        game_metadata = self._game_metadata(game)
+        empty_moves = 0
+
+        for idx, move in enumerate(game.mainline()):
+            if empty_moves > 5:
+                break
+    
+            fen = self._fen_parser(move.board().fen())
+            
+            openings_data = self.eco_db.lookup(fen)
+
+            if openings_data:
+                opening = Opening(**openings_data)
+                
+                best_move_and_score = self.stockfish.get_best_move(fen)
+                
+                opening.update_opening(
+                    **game_metadata,
+                    following_move=move.uci(),
+                    **best_move_and_score
+                )
+                
+                self.tree.add_opening(opening, head=head)
+                head = opening
+            else:
+                empty_moves += 1
+
+    @staticmethod
+    def _fen_parser(fen: str) -> str:
+        """
+        Parses the FEN string to remove the move number and the full move count
+        
+        Ref https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+        """
+        board, turn, castling, en_passant, _, _ = fen.split()
+        return f"{board} {turn} {castling} {en_passant}"
 
     @staticmethod
     def _read_game(game_pgn: str) -> Game:
         """Reads a game from a string"""
         return read_game(io.StringIO(game_pgn))
 
-    def _extract_result(self, termination: str) -> float:
-        """Returns the final result of the game being 0 for a loss, 0.5 for a draw and 1 for a win"""
-        return 1 if self.user + ' won' in termination else 0.5 if "draw" in termination else 0
-
-    def _game_metadata(self, game: Game) -> int:
+    def _game_metadata(self, game: Game) -> dict:
         """
         Extracts the metadata from the game
         
@@ -50,3 +81,7 @@ class GameProcessor:
             "result": self._extract_result(game.headers['Termination']),
             "date": datetime.strptime(game.headers['Date'], "%Y.%m.%d"),
         }
+
+    def _extract_result(self, termination: str) -> float:
+        """Returns the final result of the game being 0 for a loss, 0.5 for a draw and 1 for a win"""
+        return 1 if self.user + ' won' in termination else 0.5 if "draw" in termination else 0
