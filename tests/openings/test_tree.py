@@ -6,7 +6,7 @@ def test_tree():
     tree = Tree()
     first_opening = Opening(
         fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-        eco="King's pawn"
+        eco="King's pawn",
     )
 
     tree.add_opening(first_opening)
@@ -19,7 +19,7 @@ def test_most_common_child():
     tree = Tree()
     first_opening = Opening(
         fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-        eco="King's pawn"
+        eco="King's pawn",
     )
 
     tree.add_opening(first_opening)

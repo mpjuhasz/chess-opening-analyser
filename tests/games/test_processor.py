@@ -11,7 +11,7 @@ def test_game_processing_results():
     game_processor = GameProcessor(None, None, None, "matyasj")
     game = game_processor._read_game(game_str)
     metadata = game_processor._game_metadata(game)
-    
+
     assert metadata["result"] == 0.5
     assert metadata["date"].year == 2023
 
@@ -21,13 +21,11 @@ def test_game_processing():
     tree = Tree()
     stockfish = Stockfish("16/bin/stockfish")
     eco_db = EcoDB("eco/openings.json")
-    
+
     game_processor = GameProcessor(tree, stockfish, eco_db, "matyasj")
-    
+
     game_processor.process_game(game_str)
-    
+
     print(tree)
-    
-    # TODO need to identify how to test the tree
-    
-    
+
+    # TODO need to identify how to test the tree

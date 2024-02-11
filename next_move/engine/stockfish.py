@@ -8,7 +8,9 @@ class Stockfish:
         self.engine = engine.SimpleEngine.popen_uci(stockfish_path)
         self.depth = analysis_depth
 
-    def get_best_move(self, fen: str, colour_played: PlayerColour) -> dict[str, float | str]:
+    def get_best_move(
+        self, fen: str, colour_played: PlayerColour
+    ) -> dict[str, float | str]:
         """
         Gets the best next move for the given fen
 
@@ -23,7 +25,7 @@ class Stockfish:
         return {
             "score": self._get_probability(stockfish_analysis["score"], colour_played),
             "best_move": stockfish_analysis["pv"][0].uci(),
-        }  
+        }
 
     @staticmethod
     def _get_probability(info: dict, colour_played: PlayerColour) -> float:

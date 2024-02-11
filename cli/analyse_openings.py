@@ -8,6 +8,7 @@ from pprint import pprint
 from tqdm import tqdm
 import click
 
+
 @click.command()
 @click.option("--player-id", required=True, help="The player id to analyse")
 def create_tree(player_id: str, months: list[str] = None) -> Tree:
@@ -18,11 +19,13 @@ def create_tree(player_id: str, months: list[str] = None) -> Tree:
     eco_db = EcoDB("eco/openings.json")
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
-    
+
     for game in tqdm(games[:200]):
         game_processor.process_game(game)
 
     pprint(game_processor.tree)
+
+    game_processor.tree.to_sankey("sankey.html")
     return
 
 

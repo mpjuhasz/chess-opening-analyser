@@ -4,6 +4,7 @@ from logger import logger
 
 class EcoDB:
     """Database of eco openings"""
+
     def __init__(self, db_path: str):
         self.openings = pd.read_json(db_path)
 
@@ -24,12 +25,10 @@ class EcoDB:
                 "num_moves": int,
             }
         """
-        rows = self.openings[self.openings.fen == fen].to_dict(orient='records')
+        rows = self.openings[self.openings.fen == fen].to_dict(orient="records")
         if rows:
             row = rows[0]
-            row['num_moves'] = len(row.get('moves', '').split(' '))
+            row["num_moves"] = len(row.get("moves", "").split(" "))
             return row
         else:
             return {}
-
-
