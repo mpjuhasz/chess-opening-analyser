@@ -19,15 +19,22 @@ class ChessCom(GameRetriever):
             monthly_urls = [url for url in monthly_urls if url[-7:] in months]
 
         return list(
-            chain.from_iterable(self._get_games_in_month(url) for url in monthly_urls)
+            chain.from_iterable(
+                self._get_games_in_month(url, player_id) for url in monthly_urls
+            )
         )
 
     def _get_monthly_archive(self, player_id: str) -> list[str]:
-        monthly_urls = requests.get(f"{self.ARCHIVE_URL}/{player_id}/{self.GAMES_EXT}")
+        monthly_urls = requests.get(
+            f"{self.ARCHIVE_URL}/{player_id}/{self.GAMES_EXT}",
+            headers={"User-Agent": f"username: {player_id}"},
+        )  # this is needed to avoid a 403 error
         print(monthly_urls)
         return monthly_urls.json().get("archives", [])
 
     @staticmethod
-    def _get_games_in_month(url: str) -> list[str]:
-        monthly_archive = requests.get(url).json()
+    def _get_games_in_month(url: str, player_id: str) -> list[str]:
+        monthly_archive = requests.get(
+            url, headers={"User-Agent": f"username: {player_id}"}
+        ).json()
         return [game.get("pgn", "") for game in monthly_archive.get("games", [])]
