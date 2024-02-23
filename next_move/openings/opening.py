@@ -9,6 +9,7 @@ class Opening(BaseModel):
     fen: str
     eco: str
     name: str
+    num_moves: int
     dates: list[datetime] = []
     results: list[float] = []
     occurrence: int = 1

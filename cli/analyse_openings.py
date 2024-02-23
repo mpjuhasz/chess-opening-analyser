@@ -25,8 +25,10 @@ def create_tree(player_id: str, months: list[str] = None) -> Tree:
     for game in tqdm(games[:200]):
         game_processor.process_game(game)
 
-    visualiser.sankey(**game_processor.tree.to_sankey(prune_below_count=5), path="tree.html")
-    print(game_processor.tree.to_timeline(breakdown="month"))
+    visualiser.sankey(
+        **game_processor.tree.to_sankey(prune_below_count=5), path="tree.html"
+    )
+    print(game_processor.tree.to_timeline(breakdown="M").T)
     return
 
 

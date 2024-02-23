@@ -2,6 +2,7 @@ from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
 from itertools import chain
 from typing import Literal
+from functools import reduce
 
 import json
 import pandas as pd
@@ -23,6 +24,7 @@ class Tree:
                 fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
                 name="Root",
                 eco="ROOT",
+                num_moves=0
             )
         }
         self.edges = defaultdict(Counter)
@@ -70,23 +72,49 @@ class Tree:
             "target": target,
             "value": value,
         }
-        
+
         return {"nodes": nodes, "links": links}
 
-    def to_timeline(self, prune_below_count: int = 0, breakdown: Literal["month", "year"] = "month") -> dict[str, dict]:
+    def to_timeline(
+        self, prune_below_count: int = 0, breakdown: Literal["W", "M", "Y"] = "M"
+    ) -> pd.DataFrame:
         all_nodes = list(self.nodes.values())
-        all_dates = list(chain(*[op.dates for op in all_nodes]))
+
+        df = pd.DataFrame(
+            columns=["name", "fen", "date"],
+            data=[
+                (f"{node.name} [{node.num_moves}]", node.fen, date) for node in all_nodes for date in node.dates
+            ],
+        )
         
-        x_range = pd.date_range(start=min(all_dates), end=max(all_dates), freq='M')
-        all_maps = {}
+        blank_df = pd.DataFrame(
+            columns=["date", "name", "fen"],
+            data={"date": pd.date_range(df["date"].min(), df["date"].max(), freq=breakdown)}
+        )
+
+
+        opening_counts = []
+        df["first_name"] = df.groupby("fen")["name"].transform("first")
+
+        for fen, group in df.groupby("fen"):
+            group = group.set_index("date").resample(breakdown).count()
+            group["name"] = df.loc[df["fen"] == fen].iloc[0]["first_name"]
+            group.drop(columns=["fen"], inplace=True)
+            opening_counts.append(group)
         
-        for op in self.nodes.values():
-            date_map = {}
-            for m in x_range:
-                date_map[m] = len([d for d in op.dates if (d.year == m.year and d.month == m.month)])
-            all_maps[f"{op.eco}: {op.name}"] = date_map
-        
-        return all_maps
+        df = reduce(
+            lambda left, right: pd.merge(
+                left,
+                right,
+                how="outer",
+                on="date",
+                suffixes=["", f"_{right['name'].iloc[0]}"],
+            ),
+            [blank_df] + opening_counts,
+        )
+        df = df.rename(columns={col: col.replace('first_name_', '') for col in df.columns})
+        df.drop(columns=["name", "first_name", "fen"], inplace=True)  # cleaning up ccolumns from merging with blank
+        return df.drop(columns=df.filter(regex="^name_").columns)
 
     def to_dict(self) -> dict:
         """Parses the object into a dict"""
