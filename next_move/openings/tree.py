@@ -126,7 +126,11 @@ class Tree:
         df.drop(
             columns=["name", "first_name", "fen"], inplace=True
         )  # cleaning up columns from merging with blank
-        return df.drop(columns=df.filter(regex="^name_").columns)  #  type: ignore
+        df = df.drop(columns=df.filter(regex="^name_").columns)  #  type: ignore
+        df = df.T
+        df = df.set_axis(df.iloc[0], axis=1)
+        df = df.fillna(0)
+        return df.drop("date", axis=0)
 
     def to_dict(self) -> dict:
         """Parses the object into a dict"""

@@ -23,14 +23,18 @@ def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
     eco_db = EcoDB("eco/openings.json")
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
-    stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager
-    for game in tqdm(games[:200]):
+
+    for game in tqdm(games[:1000]):
         game_processor.process_game(game)
+
+    stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager
 
     visualiser.sankey(
         **game_processor.tree.to_sankey(prune_below_count=5), path="tree.html"
     )
-    print(game_processor.tree.to_timeline(breakdown="M").T)
+    visualiser.timeline(
+        game_processor.tree.to_timeline(breakdown="M"), path="timeline.png"
+    )
     return tree
 
 

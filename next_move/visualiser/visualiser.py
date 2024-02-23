@@ -1,4 +1,6 @@
 from plotly import graph_objects as go
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 class Visualiser:
@@ -28,5 +30,9 @@ class Visualiser:
         fig.update_layout(title_text="Openings tree", font_size=10)
         fig.write_html(path)
 
-    def timeline(self):
+    def timeline(self, timeline_df: pd.DataFrame, path: str):
+        """Takes a dataframe with the time points as columns, and openings as rows"""
+        # TODO current thinking in the notebook. This will have to be separated by move,
+        # and even then it's very noise and hard to interpret. Maybe a heatmap would be better.
+
         pass
