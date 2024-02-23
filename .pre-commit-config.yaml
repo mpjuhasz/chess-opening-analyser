@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: pyright
+        language: system
+        types: [python]
+
+      - id: pytest
+        name: pytest
+        entry: pytest -vvv --ignore tests/games/test_chess_com.py tests/engine/test_stockfish.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

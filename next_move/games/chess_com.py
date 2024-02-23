@@ -1,6 +1,7 @@
 import requests
 from next_move.games import GameRetriever
 from itertools import chain
+from typing import Optional
 
 
 class ChessCom(GameRetriever):
@@ -9,7 +10,9 @@ class ChessCom(GameRetriever):
     GAMES_EXT = "games/archives"
     ARCHIVE_URL = "https://api.chess.com/pub/player"
 
-    def _get_games(self, player_id: str, months: list[str] = None) -> list[str]:
+    def _get_games(
+        self, player_id: str, months: Optional[list[str]] = None
+    ) -> list[str]:
         if months is None:
             months = []
 

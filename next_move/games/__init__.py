@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 from tqdm import tqdm
 from enum import Enum
+from typing import Optional
 
 
 class PlayerColour(Enum):
@@ -17,15 +18,18 @@ class GameRetriever(ABC):
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     @abstractmethod
-    def _get_games(self, *args, **kwargs) -> list[str]:
+    def _get_games(
+        self, player_id: str, months: Optional[list[str]] = None
+    ) -> list[str]:
         """Returns a single game from the platform in PGN format"""
+        raise NotImplementedError
 
     def _load_from_cache(self, player_id: str) -> list[str]:
         with open(self.CACHE_DIR / f"{player_id}.json", "r", encoding="utf-8") as f:
             games = json.load(f)
         return games
 
-    def _cache_games(self, player_id: str, games: list[dict]):
+    def _cache_games(self, player_id: str, games: list[str]):
         with open(self.CACHE_DIR / f"{player_id}.json", "w", encoding="utf-8") as f:
             json.dump(games, f, ensure_ascii=False, indent=4)
 

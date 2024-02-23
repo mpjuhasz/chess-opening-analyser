@@ -42,9 +42,9 @@ class GameProcessor:
                 opening = Opening(**openings_data)
 
                 opening.update_opening(
-                    **game_metadata,
+                    **game_metadata,  #  type: ignore
                     following_move=move.uci(),
-                    **self.engine.get_best_move(fen, colour),
+                    **self.engine.get_best_move(fen, colour),  #  type: ignore
                 )
 
                 self.tree.add_opening(opening, head=head)
@@ -69,9 +69,11 @@ class GameProcessor:
     @staticmethod
     def _read_game(game_pgn: str) -> Game:
         """Reads a game from a string"""
-        return read_game(io.StringIO(game_pgn))
+        game = read_game(io.StringIO(game_pgn))
+        assert game, "Game could not be read"
+        return game
 
-    def _game_metadata(self, game: Game) -> dict:
+    def _game_metadata(self, game: Game) -> dict[str, datetime | float]:
         """
         Extracts the metadata from the game
 
@@ -79,7 +81,7 @@ class GameProcessor:
             game (Game): the game to extract the metadata from
 
         Returns:
-            dict[str, float | str]: the metadata in the format of:
+            dict[str, datetime | float]: the metadata in the format of:
             {
                 "result": float,
                 "date": datetime,

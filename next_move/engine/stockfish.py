@@ -4,7 +4,7 @@ from next_move.games import PlayerColour
 
 
 class Stockfish:
-    def __init__(self, stockfish_path: str | Path, analysis_depth=10):
+    def __init__(self, stockfish_path: str, analysis_depth=10):
         self.engine = engine.SimpleEngine.popen_uci(stockfish_path)
         self.depth = analysis_depth
 
@@ -22,16 +22,23 @@ class Stockfish:
         """
         board = Board(fen=fen)
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
+        assert (
+            "score" in stockfish_analysis
+        ), "Stockfish analysis did not return a score"
+        assert "pv" in stockfish_analysis, "Stockfish analysis did not return a pv"
         return {
             "score": self._get_probability(stockfish_analysis["score"], colour_played),
             "best_move": stockfish_analysis["pv"][0].uci(),
         }
 
     @staticmethod
-    def _get_probability(info: dict, colour_played: PlayerColour) -> float:
+    def _get_probability(info: engine.PovScore, colour_played: PlayerColour) -> float:
         if colour_played == PlayerColour.W:
             score = info.white()
         else:
             score = info.black()
 
         return score.wdl().wins / 1000 + score.wdl().draws / 2000
+
+    def quit(self):
+        self.engine.quit()

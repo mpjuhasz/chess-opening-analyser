@@ -7,5 +7,6 @@ def test_probability():
     move = stockfish.get_best_move(
         "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -", PlayerColour.W
     )
+    stockfish.quit()
     assert isinstance(move, dict)
     assert move["best_move"] == "c4d5"

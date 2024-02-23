@@ -105,6 +105,7 @@ class Tree:
 
         for fen, group in df.groupby("fen"):
             group = group.set_index("date").resample(breakdown).count()
+            assert isinstance(group, pd.DataFrame)
             group["name"] = df.loc[df["fen"] == fen].iloc[0]["first_name"]
             group.drop(columns=["fen"], inplace=True)
             opening_counts.append(group)
@@ -115,7 +116,7 @@ class Tree:
                 right,
                 how="outer",
                 on="date",
-                suffixes=["", f"_{right['name'].iloc[0]}"],
+                suffixes=["", f"_{right['name'].iloc[0]}"],  #  type: ignore
             ),
             [blank_df] + opening_counts,
         )
@@ -125,16 +126,19 @@ class Tree:
         df.drop(
             columns=["name", "first_name", "fen"], inplace=True
         )  # cleaning up columns from merging with blank
-        return df.drop(columns=df.filter(regex="^name_").columns)
+        return df.drop(columns=df.filter(regex="^name_").columns)  #  type: ignore
 
     def to_dict(self) -> dict:
         """Parses the object into a dict"""
-        return {"nodes": {k: v.dict() for k, v in self.nodes}, "edges": self.edges}
+        return {
+            "nodes": {k: v.model_dump() for k, v in self.nodes.items()},
+            "edges": self.edges,
+        }
 
     def to_json(self, path: str) -> None:
         """Saves the tree as a JSON"""
         with open(path, "w") as f:
-            json.dump(self.to_dict(), path)
+            json.dump(self.to_dict(), f)
 
     @property
     def root(self):
