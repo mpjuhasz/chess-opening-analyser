@@ -24,7 +24,7 @@ class Tree:
                 fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
                 name="Root",
                 eco="ROOT",
-                num_moves=0
+                num_moves=0,
             )
         }
         self.edges = defaultdict(Counter)
@@ -47,7 +47,9 @@ class Tree:
         self.edges[head.fen][opening.fen] += 1
 
     def most_common_child(self, opening: Opening, n: int = 1):
-        return self.graph[opening].most_common(n)
+        # TODO needs updating
+        # return self.graph[opening].most_common(n)
+        pass
 
     def to_sankey(self, prune_below_count: int = 0) -> dict[str, dict]:
         """Creates a Sankey diagram from the tree and saves in the provided path"""
@@ -83,15 +85,20 @@ class Tree:
         df = pd.DataFrame(
             columns=["name", "fen", "date"],
             data=[
-                (f"{node.name} [{node.num_moves}]", node.fen, date) for node in all_nodes for date in node.dates
+                (f"{node.name} [{node.num_moves}]", node.fen, date)
+                for node in all_nodes
+                for date in node.dates
             ],
         )
-        
+
         blank_df = pd.DataFrame(
             columns=["date", "name", "fen"],
-            data={"date": pd.date_range(df["date"].min(), df["date"].max(), freq=breakdown)}
+            data={
+                "date": pd.date_range(
+                    df["date"].min(), df["date"].max(), freq=breakdown
+                )
+            },
         )
-
 
         opening_counts = []
         df["first_name"] = df.groupby("fen")["name"].transform("first")
@@ -101,7 +108,7 @@ class Tree:
             group["name"] = df.loc[df["fen"] == fen].iloc[0]["first_name"]
             group.drop(columns=["fen"], inplace=True)
             opening_counts.append(group)
-        
+
         df = reduce(
             lambda left, right: pd.merge(
                 left,
@@ -112,8 +119,12 @@ class Tree:
             ),
             [blank_df] + opening_counts,
         )
-        df = df.rename(columns={col: col.replace('first_name_', '') for col in df.columns})
-        df.drop(columns=["name", "first_name", "fen"], inplace=True)  # cleaning up ccolumns from merging with blank
+        df = df.rename(
+            columns={col: col.replace("first_name_", "") for col in df.columns}
+        )
+        df.drop(
+            columns=["name", "first_name", "fen"], inplace=True
+        )  # cleaning up columns from merging with blank
         return df.drop(columns=df.filter(regex="^name_").columns)
 
     def to_dict(self) -> dict:

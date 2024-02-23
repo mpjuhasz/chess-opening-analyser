@@ -24,6 +24,7 @@ class ChessCom(GameRetriever):
 
     def _get_monthly_archive(self, player_id: str) -> list[str]:
         monthly_urls = requests.get(f"{self.ARCHIVE_URL}/{player_id}/{self.GAMES_EXT}")
+        print(monthly_urls)
         return monthly_urls.json().get("archives", [])
 
     @staticmethod

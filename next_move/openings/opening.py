@@ -12,7 +12,7 @@ class Opening(BaseModel):
     num_moves: int
     dates: list[datetime] = []
     results: list[float] = []
-    occurrence: int = 1
+    occurrence: int = 0
     following_moves: Counter = Counter()
     following_game_scores: list[float] = []
     best_next_move: str = ""
