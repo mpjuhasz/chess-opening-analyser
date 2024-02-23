@@ -23,6 +23,7 @@ repos:
       - id: pytest
         name: pytest
         entry: pytest -vvv --ignore tests/games/test_chess_com.py tests/engine/test_stockfish.py
+        exclude: ^(tests/games/test_chess_com\.py|tests/engine/test_stockfish\.py)$
         language: system
         pass_filenames: false
         always_run: true
