@@ -1,12 +1,10 @@
 from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
-from tqdm import tqdm
-from pathlib import Path
+from itertools import chain
+from typing import Literal
 
-# import matplotlib.pyplot as plt
-# from matplotlib.sankey import Sankey
-import plotly.graph_objects as go
 import json
+import pandas as pd
 
 
 class Tree:
@@ -24,7 +22,7 @@ class Tree:
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": Opening(
                 fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
                 name="Root",
-                eco="ROOT    ",
+                eco="ROOT",
             )
         }
         self.edges = defaultdict(Counter)
@@ -49,7 +47,7 @@ class Tree:
     def most_common_child(self, opening: Opening, n: int = 1):
         return self.graph[opening].most_common(n)
 
-    def to_sankey(self, path: str) -> None:
+    def to_sankey(self, prune_below_count: int = 0) -> dict[str, dict]:
         """Creates a Sankey diagram from the tree and saves in the provided path"""
         index_lookup = list(self.nodes.keys())
         labels = [f"{op.eco}: {op.name}" for op in self.nodes.values()]
@@ -60,8 +58,10 @@ class Tree:
 
         source, target, value = [], [], []
         for s, t_counter in self.edges.items():
-            source.append(index_lookup.index(s))
             for t, v in t_counter.items():
+                if v < prune_below_count:
+                    continue
+                source.append(index_lookup.index(s))
                 target.append(index_lookup.index(t))
                 value.append(v)
 
@@ -70,27 +70,23 @@ class Tree:
             "target": target,
             "value": value,
         }
+        
+        return {"nodes": nodes, "links": links}
 
-        fig = go.Figure(
-            data=[
-                go.Sankey(
-                    node=dict(
-                        pad=15,
-                        thickness=20,
-                        line=dict(color="black", width=0.5),
-                        label=nodes["label"],
-                    ),
-                    link=dict(
-                        source=links["source"],
-                        target=links["target"],
-                        value=links["value"],
-                    ),
-                )
-            ]
-        )
-
-        fig.update_layout(title_text="Openings tree", font_size=10)
-        fig.write_html(path)
+    def to_timeline(self, prune_below_count: int = 0, breakdown: Literal["month", "year"] = "month") -> dict[str, dict]:
+        all_nodes = list(self.nodes.values())
+        all_dates = list(chain(*[op.dates for op in all_nodes]))
+        
+        x_range = pd.date_range(start=min(all_dates), end=max(all_dates), freq='M')
+        all_maps = {}
+        
+        for op in self.nodes.values():
+            date_map = {}
+            for m in x_range:
+                date_map[m] = len([d for d in op.dates if (d.year == m.year and d.month == m.month)])
+            all_maps[f"{op.eco}: {op.name}"] = date_map
+        
+        return all_maps
 
     def to_dict(self) -> dict:
         """Parses the object into a dict"""

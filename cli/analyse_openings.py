@@ -3,6 +3,7 @@ from next_move.games.chess_com import ChessCom
 from next_move.openings.tree import Tree
 from next_move.games.processor import GameProcessor
 from next_move.opening_directory import EcoDB
+from next_move.visualiser.visualiser import Visualiser
 
 from pprint import pprint
 from tqdm import tqdm
@@ -14,6 +15,7 @@ import click
 def create_tree(player_id: str, months: list[str] = None) -> Tree:
     tree = Tree()
     chess_com = ChessCom()
+    visualiser = Visualiser()
     games = chess_com.get_all_games(player_id)
     stockfish = Stockfish("16/bin/stockfish")
     eco_db = EcoDB("eco/openings.json")
@@ -23,9 +25,8 @@ def create_tree(player_id: str, months: list[str] = None) -> Tree:
     for game in tqdm(games[:200]):
         game_processor.process_game(game)
 
-    pprint(game_processor.tree)
-
-    game_processor.tree.to_sankey("sankey.html")
+    visualiser.sankey(**game_processor.tree.to_sankey(prune_below_count=5), path="tree.html")
+    print(game_processor.tree.to_timeline(breakdown="month"))
     return
 
 
