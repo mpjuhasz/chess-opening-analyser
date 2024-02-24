@@ -5,7 +5,6 @@ from next_move.games.processor import GameProcessor
 from next_move.opening_directory import EcoDB
 from next_move.visualiser.visualiser import Visualiser
 
-from pprint import pprint
 from tqdm import tqdm
 from typing import Optional
 
@@ -24,7 +23,7 @@ def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
 
-    for game in tqdm(games[:1000]):
+    for game in tqdm(games):
         game_processor.process_game(game)
 
     stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager

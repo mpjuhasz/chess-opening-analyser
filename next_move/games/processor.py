@@ -1,8 +1,10 @@
+from typing import Optional
 from next_move.openings.opening import Opening
 from next_move.openings.tree import Tree
 from next_move.engine.stockfish import Stockfish
 from next_move.opening_directory import EcoDB
 from next_move.games import PlayerColour
+from next_move.logger import logger
 
 import io
 
@@ -12,6 +14,14 @@ from chess.pgn import Game, read_game
 
 class GameProcessor:
     """Processor to parse and analyse games, adding them to the opening tree"""
+
+    FORBIDDEN_VARIANTS = [
+        "3-check",
+        "Crazyhouse",
+        "Chess960",
+        "Bughouse",
+        "King of the Hill",
+    ]
 
     def __init__(self, tree: Tree, stockfish: Stockfish, eco_db: EcoDB, user: str):
         self.tree = tree
@@ -23,6 +33,9 @@ class GameProcessor:
     def process_game(self, game_pgn: str) -> None:
         """Processes a single game, adding the openings to the tree"""
         game = self._read_game(game_pgn)
+
+        if game.headers.get("Variant", None) in self.FORBIDDEN_VARIANTS:
+            return
 
         colour = self._get_player_colour(game)
 
@@ -70,7 +83,7 @@ class GameProcessor:
     def _read_game(game_pgn: str) -> Game:
         """Reads a game from a string"""
         game = read_game(io.StringIO(game_pgn))
-        assert game, "Game could not be read"
+        assert isinstance(game, Game), "The game could not be read"
         return game
 
     def _game_metadata(self, game: Game) -> dict[str, datetime | float]:

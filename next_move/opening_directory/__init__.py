@@ -1,5 +1,4 @@
 import pandas as pd
-from logger import logger
 
 
 class EcoDB:

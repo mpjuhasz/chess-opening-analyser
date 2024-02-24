@@ -80,57 +80,37 @@ class Tree:
     def to_timeline(
         self, prune_below_count: int = 0, breakdown: Literal["W", "M", "Y"] = "M"
     ) -> pd.DataFrame:
+        separator = ":::"
         all_nodes = list(self.nodes.values())
 
         df = pd.DataFrame(
             columns=["name", "fen", "date"],
             data=[
-                (f"{node.name} [{node.num_moves}]", node.fen, date)
+                (f"{node.name}{separator}{node.num_moves}", node.fen, date)
                 for node in all_nodes
                 for date in node.dates
             ],
         )
 
-        blank_df = pd.DataFrame(
-            columns=["date", "name", "fen"],
-            data={
-                "date": pd.date_range(
-                    df["date"].min(), df["date"].max(), freq=breakdown
-                )
-            },
-        )
-
-        opening_counts = []
         df["first_name"] = df.groupby("fen")["name"].transform("first")
 
-        for fen, group in df.groupby("fen"):
-            group = group.set_index("date").resample(breakdown).count()
-            assert isinstance(group, pd.DataFrame)
-            group["name"] = df.loc[df["fen"] == fen].iloc[0]["first_name"]
-            group.drop(columns=["fen"], inplace=True)
-            opening_counts.append(group)
+        def resample_and_merge(group: pd.DataFrame):
+            resampled = (
+                group.resample(breakdown, on="date").size().reset_index(name="count")  # type: ignore
+            )
+            resampled["name"] = group["first_name"].iloc[0]
+            return resampled
 
-        df = reduce(
-            lambda left, right: pd.merge(
-                left,
-                right,
-                how="outer",
-                on="date",
-                suffixes=["", f"_{right['name'].iloc[0]}"],  #  type: ignore
-            ),
-            [blank_df] + opening_counts,
+        grouped = df.groupby("fen").apply(resample_and_merge).reset_index(drop=True)
+        pivot_df = grouped.pivot_table(
+            index="name", columns="date", values="count"
+        ).fillna(0)
+
+        pivot_df.set_index(
+            pivot_df.index.str.split(separator, expand=True), inplace=True
         )
-        df = df.rename(
-            columns={col: col.replace("first_name_", "") for col in df.columns}
-        )
-        df.drop(
-            columns=["name", "first_name", "fen"], inplace=True
-        )  # cleaning up columns from merging with blank
-        df = df.drop(columns=df.filter(regex="^name_").columns)  #  type: ignore
-        df = df.T
-        df = df.set_axis(df.iloc[0], axis=1)
-        df = df.fillna(0)
-        return df.drop("date", axis=0)
+
+        return pivot_df
 
     def to_dict(self) -> dict:
         """Parses the object into a dict"""

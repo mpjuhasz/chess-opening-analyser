@@ -34,5 +34,6 @@ class Visualiser:
         """Takes a dataframe with the time points as columns, and openings as rows"""
         # TODO current thinking in the notebook. This will have to be separated by move,
         # and even then it's very noise and hard to interpret. Maybe a heatmap would be better.
-
+        print(timeline_df)
+        timeline_df.to_csv("timeline_2.csv")
         pass
