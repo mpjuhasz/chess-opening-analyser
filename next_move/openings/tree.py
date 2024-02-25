@@ -54,7 +54,7 @@ class Tree:
     def to_sankey(self, prune_below_count: int = 0) -> dict[str, dict]:
         """Creates a Sankey diagram from the tree and saves in the provided path"""
         index_lookup = list(self.nodes.keys())
-        labels = [f"{op.eco}: {op.name}" for op in self.nodes.values()]
+        labels = [f"{op.eco}" for op in self.nodes.values()]
 
         nodes = {
             "label": labels,

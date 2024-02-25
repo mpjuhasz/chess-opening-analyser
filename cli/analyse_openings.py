@@ -11,9 +11,7 @@ from typing import Optional
 import click
 
 
-@click.command()
-@click.option("--player-id", required=True, help="The player id to analyse")
-def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
+def run_analysis(player_id: str) -> Tree:
     tree = Tree()
     chess_com = ChessCom()
     visualiser = Visualiser()
@@ -23,7 +21,7 @@ def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
 
-    for game in tqdm(games):
+    for game in tqdm(games[:2000]):
         game_processor.process_game(game)
 
     stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager
@@ -35,6 +33,12 @@ def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
         game_processor.tree.to_timeline(breakdown="M"), path="timeline.png"
     )
     return tree
+
+
+@click.command()
+@click.option("--player-id", required=True, help="The player id to analyse")
+def create_tree(player_id: str, months: Optional[list[str]] = None) -> Tree:
+    return run_analysis(player_id)
 
 
 if __name__ == "__main__":
