@@ -56,6 +56,7 @@ class GameProcessor:
 
                 opening.update_opening(
                     **game_metadata,  #  type: ignore
+                    colour=colour,
                     following_move=move.uci(),
                     **self.engine.get_best_move(fen, colour),  #  type: ignore
                 )

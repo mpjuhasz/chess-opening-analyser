@@ -1,3 +1,4 @@
+from next_move.games import PlayerColour
 from next_move.openings.opening import Opening
 from datetime import datetime
 
@@ -13,6 +14,7 @@ def test_init_opening():
     op.update_opening(
         date=datetime.now(),
         result=0,
+        colour=PlayerColour.W,
         following_move="c4d5",
         score=0.21,
         best_move="c4d5",
