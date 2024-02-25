@@ -20,7 +20,7 @@ def test_init_opening():
         best_move="c4d5",
     )
 
-    assert isinstance(op.following_moves, dict)
-    assert op.following_moves["c4d5"] == 1
+    assert isinstance(op.following_moves, list)
+    assert op.following_moves == ["c4d5"]
     assert op.occurrence == 1
     assert op.following_game_scores == [0.21]
