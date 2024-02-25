@@ -1,3 +1,4 @@
+from next_move.games import PlayerColour
 from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
 from itertools import chain
@@ -16,6 +17,13 @@ class Tree:
     An opening is a parent of another if there was a game in which the child followed the parent -- not
     necessarily in the following move, but immediately in terms of openings. This means that the graph is
     __not__ a DAG, because cycles can occur.
+
+    Nodes:
+        - The nodes are Opening objects
+
+    Edges:
+        - Edges is a dictionary of dictionaries of the form `{parent: {child: count}}`
+        - The count is the number of times the child opening followed the parent opening
     """
 
     def __init__(self):
@@ -27,16 +35,38 @@ class Tree:
                 num_moves=0,
             )
         }
-        self.edges = defaultdict(Counter)
+        self.edges: dict[str, dict[PlayerColour, Counter]] = defaultdict(
+            lambda: defaultdict(Counter)
+        )
 
     def __repr__(self):
         string_repr = ""
 
         for parent_node, children in self.edges.items():
-            counter = {self.nodes[c]: count for c, count in children.items()}
+            counter = {
+                self.nodes[c]: count
+                for c, count in reduce(lambda a, b: a | b, children.values()).items()
+            }
             string_repr += f"{self.nodes[parent_node]} -> {counter}\n"
 
         return string_repr
+
+    def partition_by_colour(self, colour: PlayerColour) -> "Tree":
+        """Partitions the tree by colour"""
+        tree = Tree()
+
+        tree.nodes = tree.nodes | {
+            k: v.partition_by_colour(colour)
+            for k, v in self.nodes.items()
+            if v.partition_by_colour(colour) is not None
+        }
+
+        tree.edges = {
+            parent: {colour: children[colour]}
+            for parent, children in self.edges.items()
+        }
+
+        return tree
 
     def add_opening(self, opening: Opening, head: Opening):
         if opening.fen in self.nodes:
@@ -44,7 +74,10 @@ class Tree:
         else:
             self.nodes[opening.fen] = opening
 
-        self.edges[head.fen][opening.fen] += 1
+        # TODO this is based on the assumption, that the opening colour is
+        # the last colour in the list -- need to think if this is a good idea
+        print(opening.colour[-1])
+        self.edges[head.fen][opening.colour[-1]][opening.fen] += 1
 
     def most_common_child(self, opening: Opening, n: int = 1):
         # TODO needs updating
@@ -61,7 +94,8 @@ class Tree:
         }
 
         source, target, value = [], [], []
-        for s, t_counter in self.edges.items():
+        for s, colour_counter in self.edges.items():
+            t_counter = reduce(lambda a, b: a + b, colour_counter.values())
             for t, v in t_counter.items():
                 if v < prune_below_count:
                     continue
@@ -139,7 +173,11 @@ class Tree:
             fen: Opening(**opening) for fen, opening in json_dict["nodes"].items()
         }
         tree.edges = {
-            parent: Counter(targets) for parent, targets in json_dict["edges"]
+            parent: {
+                PlayerColour.B if k == "B" else PlayerColour.W: Counter(v)
+                for k, v in targets.items()
+            }
+            for parent, targets in json_dict["edges"]
         }
 
         return tree

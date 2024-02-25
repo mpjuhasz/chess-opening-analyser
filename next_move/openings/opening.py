@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 from collections import defaultdict, Counter
@@ -16,7 +17,7 @@ class Opening(BaseModel):
     dates: list[datetime] = []
     results: list[float] = []
     occurrence: int = 0
-    following_moves: Counter = Counter()
+    following_moves: list[str] = []
     following_game_scores: list[float] = []
     # score_in_five_moves = list[float] = []  TODO this is to be added
     best_next_move: str = ""
@@ -44,9 +45,26 @@ class Opening(BaseModel):
         # assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
         return self
 
-    def partition_by_colour(self):
+    def partition_by_colour(self, colour: PlayerColour) -> Optional["Opening"]:
         """Partitions the opening by colour"""
-        pass
+        indices = [i for i, c in enumerate(self.colour) if c == colour]
+
+        if not indices:
+            return None
+
+        return Opening(
+            fen=self.fen,
+            eco=self.eco,
+            name=self.name,
+            num_moves=self.num_moves,
+            colour=[self.colour[i] for i in indices],
+            dates=[self.dates[i] for i in indices],
+            results=[self.results[i] for i in indices],
+            occurrence=len(indices),
+            following_moves=[self.following_moves[i] for i in indices],
+            following_game_scores=[self.following_game_scores[i] for i in indices],
+            best_next_move=self.best_next_move,
+        )
 
     def update_opening(
         self,
@@ -57,7 +75,7 @@ class Opening(BaseModel):
         score: float,
         best_move: str,
     ):
-        self.following_moves[following_move] += 1
+        self.following_moves.append(following_move)
         self.colour.append(colour)
         self.dates.append(date)
         self.results.append(result)

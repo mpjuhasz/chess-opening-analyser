@@ -1,4 +1,4 @@
-from data_loader import load_game
+from .data_loader import load_game
 from next_move.games.processor import GameProcessor
 from next_move.openings.tree import Tree
 from next_move.engine.stockfish import Stockfish
