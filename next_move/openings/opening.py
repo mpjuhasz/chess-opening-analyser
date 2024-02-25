@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 from collections import defaultdict, Counter
@@ -44,9 +45,13 @@ class Opening(BaseModel):
         # assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
         return self
 
-    def partition_by_colour(self, colour: PlayerColour) -> "Opening":
+    def partition_by_colour(self, colour: PlayerColour) -> Optional["Opening"]:
         """Partitions the opening by colour"""
         indices = [i for i, c in enumerate(self.colour) if c == colour]
+
+        if not indices:
+            return None
+
         return Opening(
             fen=self.fen,
             eco=self.eco,
