@@ -21,9 +21,13 @@ class Stockfish:
             dict: {"score": chess.engine.Score, "best_move": str}: the best next move and corresponding score
         """
         board = Board(fen=fen)
-        # TODO need to add scoring if the board is in a finished position
         if board.is_game_over():
-            return {"score": -1, "best_move": ""}  # FIXME
+            return {
+                "score": self._pseudo_probability(
+                    board.result(), colour_played=colour_played
+                ),
+                "best_move": "",
+            }
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
         assert (
             "score" in stockfish_analysis
@@ -33,6 +37,14 @@ class Stockfish:
             "score": self._get_probability(stockfish_analysis["score"], colour_played),
             "best_move": stockfish_analysis["pv"][0].uci(),
         }
+
+    @staticmethod
+    def _pseudo_probability(result: str, colour_played: PlayerColour) -> float:
+        if result == "1-0":
+            return 1.0 if colour_played == PlayerColour.W else 0.0
+        if result == "0-1":
+            return 0.0 if colour_played == PlayerColour.W else 1.0
+        return 0.5
 
     @staticmethod
     def _get_probability(info: engine.PovScore, colour_played: PlayerColour) -> float:

@@ -6,7 +6,7 @@ import seaborn as sns
 
 from cli.analyse_openings import run_analysis
 
-
+st.set_page_config(layout="wide")
 st.title("Analyse chess games")
 # input box for player id:
 player_id = st.text_input("Enter player id")

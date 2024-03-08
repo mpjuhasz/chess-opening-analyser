@@ -55,13 +55,12 @@ class GameProcessor:
             fens.append(fen)
 
             openings_data = self.eco_db.lookup(fen)
+            engine_analysis = self.engine.get_best_move(fen, colour)
+            scores.append(engine_analysis["score"])
 
             if openings_data:
                 empty_moves = 0
                 opening = Opening(**openings_data)
-
-                engine_analysis = self.engine.get_best_move(fen, colour)
-                scores.append(engine_analysis["score"])
 
                 opening.update_opening(
                     **game_metadata,  #  type: ignore
@@ -74,11 +73,12 @@ class GameProcessor:
                 head = opening
             else:
                 empty_moves += 1
-                engine_analysis = self.engine.get_best_move(fen, colour)
-                scores.append(engine_analysis["score"])
+
+        fillvalue = game_metadata["result"] if empty_moves <= 5 else -1
+        assert isinstance(fillvalue, float), "The fillvalue should be a float"
 
         for fen, score_in_n_moves in zip_longest(
-            fens, scores[self.MOVE_DELAY - 1 :], fillvalue=-1
+            fens, scores[self.MOVE_DELAY - 1 :], fillvalue=fillvalue
         ):
             if fen in self.tree.nodes.keys():
                 assert isinstance(fen, str), "The FEN should be a string"
