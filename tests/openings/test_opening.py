@@ -38,6 +38,7 @@ def test_partitioning():
         occurrence=2,
         following_moves=["c4d5", "c4d5"],
         following_game_scores=[0.41, 0.21],
+        score_in_n_moves=[-0.1, 0.1],
         best_next_move="c4d5",
     )
 

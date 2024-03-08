@@ -8,6 +8,7 @@ from next_move.logger import logger
 
 import io
 
+from itertools import zip_longest
 from datetime import datetime
 from chess.pgn import Game, read_game
 
@@ -15,6 +16,7 @@ from chess.pgn import Game, read_game
 class GameProcessor:
     """Processor to parse and analyse games, adding them to the opening tree"""
 
+    MOVE_DELAY = 5
     FORBIDDEN_VARIANTS = [
         "3-check",
         "Crazyhouse",
@@ -42,29 +44,45 @@ class GameProcessor:
         head = self.tree.root
         game_metadata = self._game_metadata(game)
         empty_moves = 0
+        fens = []
+        scores = []
 
         for move in game.mainline():
             if empty_moves > 5:
                 break
 
             fen = self._fen_parser(move.board().fen())
+            fens.append(fen)
 
             openings_data = self.eco_db.lookup(fen)
 
             if openings_data:
+                empty_moves = 0
                 opening = Opening(**openings_data)
+
+                engine_analysis = self.engine.get_best_move(fen, colour)
+                scores.append(engine_analysis["score"])
 
                 opening.update_opening(
                     **game_metadata,  #  type: ignore
                     colour=colour,
                     following_move=move.uci(),
-                    **self.engine.get_best_move(fen, colour),  #  type: ignore
+                    **engine_analysis,  #  type: ignore
                 )
 
                 self.tree.add_opening(opening, head=head)
                 head = opening
             else:
                 empty_moves += 1
+                engine_analysis = self.engine.get_best_move(fen, colour)
+                scores.append(engine_analysis["score"])
+
+        for fen, score_in_n_moves in zip_longest(
+            fens, scores[self.MOVE_DELAY - 1 :], fillvalue=-1
+        ):
+            if fen in self.tree.nodes.keys():
+                assert isinstance(fen, str), "The FEN should be a string"
+                self.tree.nodes[fen].score_in_n_moves.append(score_in_n_moves)
 
     def _get_player_colour(self, game: Game) -> PlayerColour:
         """Gets the colour of the player in the game"""

@@ -21,6 +21,9 @@ class Stockfish:
             dict: {"score": chess.engine.Score, "best_move": str}: the best next move and corresponding score
         """
         board = Board(fen=fen)
+        # TODO need to add scoring if the board is in a finished position
+        if board.is_game_over():
+            return {"score": -1, "best_move": ""}  # FIXME
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
         assert (
             "score" in stockfish_analysis
