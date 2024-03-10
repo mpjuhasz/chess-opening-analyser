@@ -4,11 +4,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from next_move.visualiser.visualiser import Visualiser
 from cli.analyse_openings import run_analysis
 
 st.set_page_config(layout="wide")
 st.title("Analyse chess games")
-# input box for player id:
+
 player_id = st.text_input("Enter player id")
 
 if "trees" not in st.session_state:
@@ -25,26 +26,24 @@ if player_id:
             ("Sankey", "Timeline"),
         )
         if option == "Sankey":
-            with open("./tree.html", "r") as f:
-                html = f.read()
-            components.html(html, width=800, height=1000)
+            fig = Visualiser.sankey(**st.session_state.trees[player_id].to_sankey())
+            st.plotly_chart(fig)
         elif option == "Timeline":
-            # TODO this to be moved out into the visualiser
-            df = pd.read_csv("timeline_2.csv", index_col=[0, 1])
-            move = st.slider("Number of moves", 0, max(df.index.get_level_values(1)), 1)
-            fig, ax = plt.subplots(ncols=1, nrows=2, figsize=(12, 10))
-            df = df.xs(move, level=1).div(df.xs(move, level=1).sum(axis=0))
-            df = df[df.apply(lambda x: max(x) > 0.05, axis=1)]
-            sns.heatmap(
-                df, annot=False, cmap="YlGnBu", ax=ax[0], cbar=False, yticklabels=True
+            col1, col2 = st.columns(2)
+            with col1:
+                breakdown = st.selectbox(
+                    "Choose breakdown period",
+                    ("M", "W", "D"),
+                )
+            with col2:
+                occurrence_threshold = st.slider(
+                    "Minimum number of occurrences", 0, 100, 5
+                )
+            df = st.session_state.trees[player_id].to_timeline(
+                breakdown=breakdown, occurrence_threshold=occurrence_threshold
             )
-            ax[0].set_xticklabels(
-                ax[0].get_xticklabels(), rotation=45, horizontalalignment="right"
+            move = st.slider(
+                "Number of moves", 0, max(df.index.get_level_values(1).astype(int)), 1
             )
-            sns.lineplot(data=df.T, ax=ax[1])
-            ax[1].set_xticklabels(
-                ax[1].get_xticklabels(), rotation=45, horizontalalignment="right"
-            )
-            plt.legend(loc="upper right", bbox_to_anchor=(-0.05, 1))
-            plt.tight_layout()
+            fig = Visualiser.timeline(df, move)
             st.pyplot(fig)

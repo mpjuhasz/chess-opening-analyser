@@ -162,7 +162,9 @@ class Tree:
 
         return df
 
-    def to_timeline(self, breakdown: Literal["W", "M", "Y"] = "M") -> pd.DataFrame:
+    def to_timeline(
+        self, breakdown: Literal["W", "M", "Y"] = "M", occurrence_threshold: int = 0
+    ) -> pd.DataFrame:
         """Creates a timeline of the openings in the tree, resampled by the breakdown period"""
         separator = ":::"
         all_nodes = list(self.nodes.values())
@@ -190,8 +192,16 @@ class Tree:
             index="name", columns="date", values="count"
         ).fillna(0)
 
-        pivot_df.set_index(
-            pivot_df.index.str.split(separator, expand=True), inplace=True
+        pivot_df = pivot_df[
+            pivot_df.apply(lambda x: max(x) > occurrence_threshold, axis=1)
+        ]
+
+        pivot_df.index = pd.MultiIndex.from_tuples(
+            [
+                (i.split(separator)[0], int(i.split(separator)[1]))
+                for i in pivot_df.index
+            ],
+            names=["name", "move"],
         )
 
         return pivot_df
