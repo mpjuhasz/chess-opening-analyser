@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Optional
 
 
-class PlayerColour(Enum):
+class PlayerColour(str, Enum):
     W = "White"
     B = "Black"
 

@@ -21,7 +21,7 @@ def run_analysis(player_id: str) -> Tree:
 
     game_processor = GameProcessor(tree, stockfish, eco_db, player_id)
 
-    for game in tqdm(games[:2000]):
+    for game in tqdm(games[:20]):
         game_processor.process_game(game)
 
     stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager
@@ -35,6 +35,8 @@ def run_analysis(player_id: str) -> Tree:
 
     df = tree.to_opening_strength()
     df.to_csv("opening_strength.csv")
+
+    tree.to_json("tree.json")
 
     return tree
 

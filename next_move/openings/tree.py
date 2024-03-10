@@ -8,6 +8,7 @@ from functools import reduce
 import json
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 
 class Tree:
@@ -205,7 +206,11 @@ class Tree:
     def to_json(self, path: str) -> None:
         """Saves the tree as a JSON"""
         with open(path, "w") as f:
-            json.dump(self.to_dict(), f)
+            json.dump(
+                self.to_dict(),
+                f,
+                default=lambda x: x.isoformat() if isinstance(x, datetime) else x,
+            )
 
     @property
     def root(self):
@@ -219,14 +224,18 @@ class Tree:
 
         tree = cls()
         tree.nodes = {
-            fen: Opening(**opening) for fen, opening in json_dict["nodes"].items()
+            fen: Opening(
+                **{
+                    **opening,
+                    "dates": [datetime.fromisoformat(d) for d in opening["dates"]],
+                    "colour": [PlayerColour(c) for c in opening["colour"]],
+                }
+            )
+            for fen, opening in json_dict["nodes"].items()
         }
         tree.edges = {
-            parent: {
-                PlayerColour.B if k == "B" else PlayerColour.W: Counter(v)
-                for k, v in targets.items()
-            }
-            for parent, targets in json_dict["edges"]
+            parent: {PlayerColour(k): Counter(v) for k, v in targets.items()}
+            for parent, targets in json_dict["edges"].items()
         }
 
         return tree

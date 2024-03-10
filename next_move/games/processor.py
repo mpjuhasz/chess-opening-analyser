@@ -74,7 +74,7 @@ class GameProcessor:
             else:
                 empty_moves += 1
 
-        fillvalue = game_metadata["result"] if empty_moves <= 5 else -1
+        fillvalue = game_metadata["result"] if empty_moves <= 5 else -1.0
         assert isinstance(fillvalue, float), "The fillvalue should be a float"
 
         for fen, score_in_n_moves in zip_longest(
