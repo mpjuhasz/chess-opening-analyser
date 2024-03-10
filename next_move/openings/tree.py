@@ -6,7 +6,9 @@ from typing import Literal
 from functools import reduce
 
 import json
+import numpy as np
 import pandas as pd
+from datetime import datetime
 
 
 class Tree:
@@ -76,7 +78,6 @@ class Tree:
 
         # TODO this is based on the assumption, that the opening colour is
         # the last colour in the list -- need to think if this is a good idea
-        print(opening.colour[-1])
         self.edges[head.fen][opening.colour[-1]][opening.fen] += 1
 
     def most_common_child(self, opening: Opening, n: int = 1):
@@ -111,9 +112,58 @@ class Tree:
 
         return {"nodes": nodes, "links": links}
 
-    def to_timeline(
-        self, prune_below_count: int = 0, breakdown: Literal["W", "M", "Y"] = "M"
-    ) -> pd.DataFrame:
+    def to_opening_strength(self) -> pd.DataFrame:
+        """
+        Creates a DataFrame of the strength of each opening
+
+        The dataframe has a MultiIndex of the form (opening, number of moves, colour) and the following columns:
+        - occurrence
+        - mean following score
+        - mean win rate
+        - mean score in 5 moves
+        """
+        separator = ":::"
+        all_nodes = list(self.nodes.values())
+        rows = []
+
+        for node in all_nodes:
+            for c in [PlayerColour.W, PlayerColour.B]:
+                c_opening = node.partition_by_colour(c)
+
+                if c_opening is None:
+                    continue
+
+                rows.append(
+                    (
+                        f"{node.name}{separator}{node.num_moves}{separator}{c.value}",
+                        np.mean(c_opening.following_game_scores),
+                        np.mean(c_opening.results),
+                        c_opening.occurrence,
+                        c_opening.score_in_n_moves,
+                    )
+                )
+
+        df = pd.DataFrame(
+            columns=[
+                "name",
+                "mean_following_score",
+                "mean_win_rate",
+                "occurrence",
+                "score_in_n_moves",
+            ],
+            data=rows,
+        )
+
+        df.set_index("name", inplace=True)
+
+        df.set_index(
+            df.index.str.split(separator, expand=True), inplace=True, drop=True
+        )
+
+        return df
+
+    def to_timeline(self, breakdown: Literal["W", "M", "Y"] = "M") -> pd.DataFrame:
+        """Creates a timeline of the openings in the tree, resampled by the breakdown period"""
         separator = ":::"
         all_nodes = list(self.nodes.values())
 
@@ -156,7 +206,11 @@ class Tree:
     def to_json(self, path: str) -> None:
         """Saves the tree as a JSON"""
         with open(path, "w") as f:
-            json.dump(self.to_dict(), f)
+            json.dump(
+                self.to_dict(),
+                f,
+                default=lambda x: x.isoformat() if isinstance(x, datetime) else x,
+            )
 
     @property
     def root(self):
@@ -170,14 +224,18 @@ class Tree:
 
         tree = cls()
         tree.nodes = {
-            fen: Opening(**opening) for fen, opening in json_dict["nodes"].items()
+            fen: Opening(
+                **{
+                    **opening,
+                    "dates": [datetime.fromisoformat(d) for d in opening["dates"]],
+                    "colour": [PlayerColour(c) for c in opening["colour"]],
+                }
+            )
+            for fen, opening in json_dict["nodes"].items()
         }
         tree.edges = {
-            parent: {
-                PlayerColour.B if k == "B" else PlayerColour.W: Counter(v)
-                for k, v in targets.items()
-            }
-            for parent, targets in json_dict["edges"]
+            parent: {PlayerColour(k): Counter(v) for k, v in targets.items()}
+            for parent, targets in json_dict["edges"].items()
         }
 
         return tree

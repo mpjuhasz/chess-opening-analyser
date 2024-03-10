@@ -17,6 +17,7 @@ def test_tree():
         occurrence=1,
         following_moves=["c4d5"],
         following_game_scores=[0.41],
+        score_in_n_moves=[-0.1],
         best_next_move="c4d5",
     )
 
@@ -39,6 +40,7 @@ def test_partition_by_colour():
         occurrence=1,
         following_moves=["c4d5"],
         following_game_scores=[0.41],
+        score_in_n_moves=[-0.1],
         best_next_move="c4d5",
     )
     second_opening = Opening(
@@ -52,6 +54,7 @@ def test_partition_by_colour():
         occurrence=1,
         following_moves=["b2b4"],
         following_game_scores=[0.21],
+        score_in_n_moves=[0.1],
         best_next_move="c4d5",
     )
 

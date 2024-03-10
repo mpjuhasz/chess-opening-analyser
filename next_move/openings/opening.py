@@ -19,7 +19,7 @@ class Opening(BaseModel):
     occurrence: int = 0
     following_moves: list[str] = []
     following_game_scores: list[float] = []
-    # score_in_five_moves = list[float] = []  TODO this is to be added
+    score_in_n_moves: list[float] = []
     best_next_move: str = ""
 
     def __hash__(self):
@@ -41,6 +41,7 @@ class Opening(BaseModel):
         self.following_moves = self.following_moves + other.following_moves
         self.following_game_scores += other.following_game_scores
         self.colour += other.colour
+        self.score_in_n_moves += other.score_in_n_moves
         # TODO Stockfish is non-deterministic when running on multiple cores
         # assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
         return self
@@ -63,6 +64,7 @@ class Opening(BaseModel):
             occurrence=len(indices),
             following_moves=[self.following_moves[i] for i in indices],
             following_game_scores=[self.following_game_scores[i] for i in indices],
+            score_in_n_moves=[self.score_in_n_moves[i] for i in indices],
             best_next_move=self.best_next_move,
         )
 
