@@ -156,8 +156,16 @@ class Tree:
 
         df.set_index("name", inplace=True)
 
-        df.set_index(
-            df.index.str.split(separator, expand=True), inplace=True, drop=True
+        df.index = pd.MultiIndex.from_tuples(
+            [
+                (
+                    i.split(separator)[0],
+                    int(i.split(separator)[1]),
+                    i.split(separator)[2],
+                )
+                for i in df.index
+            ],
+            names=["name", "move", "colour"],
         )
 
         return df

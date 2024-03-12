@@ -23,7 +23,7 @@ if player_id:
     if st.session_state.trees:
         option = st.selectbox(
             "Choose visualisation",
-            ("Sankey", "Timeline"),
+            ("Sankey", "Timeline", "Opening strength"),
         )
         if option == "Sankey":
             fig = Visualiser.sankey(**st.session_state.trees[player_id].to_sankey())
@@ -47,3 +47,41 @@ if player_id:
             )
             fig = Visualiser.timeline(df, move)
             st.pyplot(fig)
+        elif option == "Opening strength":
+            df = st.session_state.trees[player_id].to_opening_strength()
+            df["mean_score_in_n_moves"] = df["score_in_n_moves"].apply(
+                lambda x: sum(x) / len(x)
+            )
+            df.drop("score_in_n_moves", axis=1, inplace=True)
+
+            col1, col2 = st.columns(2)
+            with col1:
+                colour = st.selectbox(
+                    "Choose colour",
+                    ("Black", "White"),
+                )
+                strong_or_weak = st.radio(
+                    "Show top openings by",
+                    ("Strong", "Weak"),
+                )
+
+            with col2:
+                n_moves = st.slider("Number of moves", 0, df.index.levels[1].max(), 1)
+                minimum_occurrence = st.slider("Minimum occurrence", 0, 100, 5)
+                order_by = st.selectbox(
+                    "Order by column",
+                    (
+                        "mean_following_score",
+                        "mean_win_rate",
+                        "mean_score_in_n_moves",
+                        "occurrence",
+                    ),
+                )
+
+            st.table(
+                df[df["occurrence"] > minimum_occurrence]
+                .xs(n_moves, level=1)
+                .xs(colour, level=1)
+                .sort_values(order_by, ascending=strong_or_weak == "Weak")
+                .head(20)
+            )
