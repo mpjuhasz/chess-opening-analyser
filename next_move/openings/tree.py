@@ -2,7 +2,7 @@ from next_move.games import PlayerColour
 from next_move.openings.opening import Opening
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import Literal
+from typing import Literal, Optional
 from functools import reduce
 
 import json
@@ -84,6 +84,12 @@ class Tree:
         # TODO needs updating
         # return self.graph[opening].most_common(n)
         pass
+
+    def get_opening_by_name_and_move(self, name: str, move: int) -> Optional[Opening]:
+        """Gets an opening by name and move"""
+        for opening in self.nodes.values():
+            if opening.name == name and opening.num_moves == move:
+                return opening
 
     def to_sankey(self, prune_below_count: int = 0) -> dict[str, dict]:
         """Creates a Sankey diagram from the tree and saves in the provided path"""

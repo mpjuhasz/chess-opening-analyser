@@ -23,7 +23,7 @@ if player_id:
     if st.session_state.trees:
         option = st.selectbox(
             "Choose visualisation",
-            ("Sankey", "Timeline", "Opening strength"),
+            ("Sankey", "Timeline", "Opening strength", "Single opening"),
         )
         if option == "Sankey":
             fig = Visualiser.sankey(**st.session_state.trees[player_id].to_sankey())
@@ -85,3 +85,26 @@ if player_id:
                 .sort_values(order_by, ascending=strong_or_weak == "Weak")
                 .head(20)
             )
+        elif option == "Single opening":
+            df = st.session_state.trees[player_id].to_opening_strength()
+            col1, col2 = st.columns(2)
+
+            with col1:
+                name = st.selectbox(
+                    "Choose opening",
+                    df.index.levels[0],
+                )
+
+            with col2:
+                _df = df.xs(name, level=0)
+                move = st.selectbox(
+                    "Choose move",
+                    _df.index.levels[0],
+                )
+
+            opening = st.session_state.trees[player_id].get_opening_by_name_and_move(
+                name, move
+            )
+
+            if opening:
+                st.write(opening.dict())
