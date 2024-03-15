@@ -10,7 +10,13 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Optional
 
+from dotenv import load_dotenv, find_dotenv
+
 import click
+import os
+
+
+load_dotenv(find_dotenv())
 
 
 def run_analysis(player_id: str) -> Tree:
@@ -21,7 +27,7 @@ def run_analysis(player_id: str) -> Tree:
         chess_com = ChessCom()
 
         games = chess_com.get_all_games(player_id)
-        stockfish = Stockfish("16/bin/stockfish")
+        stockfish = Stockfish(os.environ["STOCKFISH_DIR"])
         eco_db = EcoDB("eco/openings.json")
 
         game_processor = GameProcessor(tree, stockfish, eco_db, player_id)

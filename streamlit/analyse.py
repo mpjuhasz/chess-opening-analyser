@@ -1,9 +1,9 @@
 import streamlit as st
-import streamlit.components.v1 as components
+import chess
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+from chess.svg import board, Arrow
 
+from next_move.games import PlayerColour
 from next_move.visualiser.visualiser import Visualiser
 from cli.analyse_openings import run_analysis
 
@@ -87,24 +87,79 @@ if player_id:
             )
         elif option == "Single opening":
             df = st.session_state.trees[player_id].to_opening_strength()
-            col1, col2 = st.columns(2)
+            # col1, col2 = st.columns(2)
 
-            with col1:
-                name = st.selectbox(
-                    "Choose opening",
-                    df.index.levels[0],
-                )
-
-            with col2:
-                _df = df.xs(name, level=0)
-                move = st.selectbox(
-                    "Choose move",
-                    _df.index.levels[0],
-                )
-
-            opening = st.session_state.trees[player_id].get_opening_by_name_and_move(
-                name, move
+            # with col1:
+            name = st.selectbox(
+                "Choose opening",
+                df.index.levels[0],
             )
 
-            if opening:
-                st.write(opening.dict())
+            # with col2:
+            if name:
+                _df = df.xs(name, level=0)
+
+                move = st.selectbox(
+                    "Choose move",
+                    _df.index.get_level_values(0).unique(),
+                )
+
+                if move:
+                    opening = st.session_state.trees[
+                        player_id
+                    ].get_opening_by_name_and_move(name, move)
+
+                    opening = opening.partition_by_colour(
+                        PlayerColour.B if move % 2 == 1 else PlayerColour.W
+                    )
+
+                    if opening:
+                        st.write(opening.dict())
+
+                        b = chess.Board(opening.fen)
+
+                        arrows = []
+                        for move in opening.following_moves:
+                            arrows.append(
+                                Arrow(
+                                    chess.parse_square(move[:2]),
+                                    chess.parse_square(move[2:]),
+                                    color="#008F008F",
+                                )
+                            )
+
+                        arrows.append(
+                            Arrow(
+                                chess.parse_square(opening.best_next_move[:2]),
+                                chess.parse_square(opening.best_next_move[2:]),
+                                color="#008F008F",
+                            )
+                        )
+
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+                            st.markdown(
+                                board(
+                                    b,
+                                    arrows=arrows,
+                                    size=600,
+                                ),
+                                unsafe_allow_html=True,
+                            )
+
+                        with col2:
+                            move_df = pd.DataFrame(
+                                {
+                                    "following_moves": opening.following_moves,
+                                    "results": opening.results,
+                                    "score_in_n_moves": opening.score_in_n_moves,
+                                    "following_game_scores": opening.following_game_scores,
+                                },
+                            )
+
+                            st.table(move_df)
+                    else:
+                        st.write(
+                            "There are no games where it was your turn at this move."
+                        )
