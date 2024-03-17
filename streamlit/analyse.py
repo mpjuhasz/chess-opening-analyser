@@ -182,11 +182,9 @@ if player_id:
                             )
 
                             def color_value(val):
-                                r = 255 - int(75 * val)  # Adding more white to red
-                                g = 200 + int(
-                                    55 * val
-                                )  # Starting from a lighter green, less increase
-                                b = 255  # Keeping blue constant for a softer look
+                                r = 255 - int(75 * val)
+                                g = 200 + int(55 * val)
+                                b = 255
                                 return f"background-color: rgb({r},{g},{b})"
 
                             st.table(
