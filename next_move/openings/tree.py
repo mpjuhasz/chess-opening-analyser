@@ -183,6 +183,7 @@ class Tree:
         separator = ":::"
         all_nodes = list(self.nodes.values())
 
+        # TODO change this so that PlayerColour is tracked
         df = pd.DataFrame(
             columns=["name", "fen", "date"],
             data=[

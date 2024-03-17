@@ -35,7 +35,10 @@ class Visualiser:
         """Takes a dataframe with the time points as columns, and openings as rows"""
         fig, ax = plt.subplots(ncols=1, nrows=2, figsize=(12, 10))
         df = df.xs(move, level=1).div(df.xs(move, level=1).sum(axis=0))
-        df = df[df.apply(lambda x: max(x) > 0.05, axis=1)]
+        # df = df[df.apply(lambda x: max(x) > 0.05, axis=1)]
+
+        df.columns = df.columns.strftime("%Y-%m-%d")  # type: ignore
+
         sns.heatmap(
             df, annot=False, cmap="YlGnBu", ax=ax[0], cbar=False, yticklabels=True
         )

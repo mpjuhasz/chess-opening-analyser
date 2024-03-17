@@ -1,3 +1,4 @@
+import numpy as np
 import streamlit as st
 import chess
 import pandas as pd
@@ -35,6 +36,10 @@ if player_id:
                     "Choose breakdown period",
                     ("M", "W", "D"),
                 )
+                colour = st.selectbox(
+                    "Choose colour",
+                    ("Black", "White", "Both"),
+                )
             with col2:
                 occurrence_threshold = st.slider(
                     "Minimum number of occurrences", 0, 100, 5
@@ -42,6 +47,10 @@ if player_id:
             df = st.session_state.trees[player_id].to_timeline(
                 breakdown=breakdown, occurrence_threshold=occurrence_threshold
             )
+
+            if colour != "Both":
+                df = df.xs(colour, level=2)
+
             move = st.slider(
                 "Number of moves", 0, max(df.index.get_level_values(1).astype(int)), 1
             )
@@ -124,7 +133,7 @@ if player_id:
                                 Arrow(
                                     chess.parse_square(move[:2]),
                                     chess.parse_square(move[2:]),
-                                    color="#008F008F",
+                                    color="#D3D3D38F",
                                 )
                             )
 
@@ -155,10 +164,41 @@ if player_id:
                                     "results": opening.results,
                                     "score_in_n_moves": opening.score_in_n_moves,
                                     "following_game_scores": opening.following_game_scores,
+                                    "occurrence": 1,
                                 },
                             )
 
-                            st.table(move_df)
+                            move_df = (
+                                move_df.groupby("following_moves")
+                                .agg(
+                                    {
+                                        "results": "mean",
+                                        "score_in_n_moves": "mean",
+                                        "following_game_scores": "mean",
+                                        "occurrence": "sum",
+                                    }
+                                )
+                                .sort_values(by="occurrence", ascending=False)  # type: ignore
+                            )
+
+                            def color_value(val):
+                                r = 255 - int(75 * val)  # Adding more white to red
+                                g = 200 + int(
+                                    55 * val
+                                )  # Starting from a lighter green, less increase
+                                b = 255  # Keeping blue constant for a softer look
+                                return f"background-color: rgb({r},{g},{b})"
+
+                            st.table(
+                                move_df.style.applymap(
+                                    color_value,
+                                    subset=[
+                                        "results",
+                                        "score_in_n_moves",
+                                        "following_game_scores",
+                                    ],
+                                )
+                            )
                     else:
                         st.write(
                             "There are no games where it was your turn at this move."
