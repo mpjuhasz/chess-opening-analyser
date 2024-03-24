@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import seaborn as sns
+import chess
+from chess.svg import board, Arrow
+
+from next_move.openings.opening import Opening
 
 
 class Visualiser:
@@ -51,3 +55,33 @@ class Visualiser:
         plt.legend(loc="upper right", bbox_to_anchor=(-0.05, 1))
         plt.tight_layout()
         return fig
+
+    @classmethod
+    def board_from_opening(cls, opening: Opening) -> str:
+        """Creates a board visualisation with following moves from an opening object"""
+        b = chess.Board(opening.fen)
+
+        arrows = []
+        for move in opening.following_moves:
+            if move:
+                arrows.append(
+                    Arrow(
+                        chess.parse_square(move[:2]),
+                        chess.parse_square(move[2:]),
+                        color="#D3D3D38F",
+                    )
+                )
+
+        arrows.append(
+            Arrow(
+                chess.parse_square(opening.best_next_move[:2]),
+                chess.parse_square(opening.best_next_move[2:]),
+                color="#008F008F",
+            )
+        )
+
+        return board(
+            b,
+            arrows=arrows,
+            size=600,
+        )

@@ -1,4 +1,3 @@
-import numpy as np
 import streamlit as st
 import chess
 import pandas as pd
@@ -58,7 +57,6 @@ if player_id:
             if colour != "Both":
                 df = df.xs(colour, level=2)
             else:
-                # groupby name and move and sum everything
                 df = df.groupby(level=[0, 1]).sum()
 
             move = st.slider(
@@ -126,45 +124,27 @@ if player_id:
                     if opening:
                         st.write(opening.dict())
 
-                        b = chess.Board(opening.fen)
-
-                        arrows = []
-                        for move in opening.following_moves:
-                            arrows.append(
-                                Arrow(
-                                    chess.parse_square(move[:2]),
-                                    chess.parse_square(move[2:]),
-                                    color="#D3D3D38F",
-                                )
-                            )
-
-                        arrows.append(
-                            Arrow(
-                                chess.parse_square(opening.best_next_move[:2]),
-                                chess.parse_square(opening.best_next_move[2:]),
-                                color="#008F008F",
-                            )
-                        )
+                        board_string = Visualiser.board_from_opening(opening)
 
                         col1, col2 = st.columns(2)
 
                         with col1:
                             st.markdown(
-                                board(
-                                    b,
-                                    arrows=arrows,
-                                    size=600,
-                                ),
+                                board_string,
                                 unsafe_allow_html=True,
                             )
 
                         with col2:
+                            score_cols = [
+                                "results",
+                                "score_in_n_moves",
+                                "following_game_scores",
+                            ]
+
                             move_df = pd.DataFrame(
                                 {
                                     "following_moves": opening.following_moves,
-                                    "results": opening.results,
-                                    "score_in_n_moves": opening.score_in_n_moves,
-                                    "following_game_scores": opening.following_game_scores,
+                                    **{sc: getattr(opening, sc) for sc in score_cols},
                                     "occurrence": 1,
                                 },
                             )
@@ -173,9 +153,7 @@ if player_id:
                                 move_df.groupby("following_moves")
                                 .agg(
                                     {
-                                        "results": "mean",
-                                        "score_in_n_moves": "mean",
-                                        "following_game_scores": "mean",
+                                        **{sc: "mean" for sc in score_cols},
                                         "occurrence": "sum",
                                     }
                                 )
@@ -185,11 +163,7 @@ if player_id:
                             st.table(
                                 move_df.style.applymap(
                                     color_value,
-                                    subset=[
-                                        "results",
-                                        "score_in_n_moves",
-                                        "following_game_scores",
-                                    ],
+                                    subset=score_cols,
                                 )
                             )
                     else:

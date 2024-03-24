@@ -108,7 +108,7 @@ class Transformer:
                 rows.append(
                     (
                         f"{node.name}{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
-                        *(c_opening.__dict__[a] for a in attributes),
+                        *(getattr(c_opening, a) for a in attributes),
                     )
                 )
 
