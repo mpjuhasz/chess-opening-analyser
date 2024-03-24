@@ -25,12 +25,9 @@ if player_id:
     if st.session_state.trees:
         option = st.selectbox(
             "Choose visualisation",
-            ("Sankey", "Timeline", "Opening strength", "Single opening"),
+            ("Timeline", "Opening strength", "Single opening"),
         )
-        if option == "Sankey":
-            fig = Visualiser.sankey(**st.session_state.trees[player_id].to_sankey())
-            st.plotly_chart(fig)
-        elif option == "Timeline":
+        if option == "Timeline":
             col1, col2 = st.columns(2)
             with col1:
                 resample_interval = st.selectbox(
@@ -166,6 +163,14 @@ if player_id:
                                     subset=score_cols,
                                 )
                             )
+
+                        filtered_tree = st.session_state.trees[
+                            player_id
+                        ].filter_by_opening(opening.fen)
+
+                        fig = Visualiser.sankey(**filtered_tree.to_sankey())
+                        st.plotly_chart(fig)
+
                     else:
                         st.write(
                             "There are no games where it was your turn at this move."

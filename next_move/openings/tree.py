@@ -24,7 +24,7 @@ class Tree:
         - The nodes are Opening objects
 
     Edges:
-        - Edges is a dictionary of dictionaries of the form `{parent: {child: count}}`
+        - Edges is a dictionary of dictionaries of the form `{parent: {player_colour: {child: count}}`
         - The count is the number of times the child opening followed the parent opening
     """
 
@@ -40,6 +40,99 @@ class Tree:
         self.edges: dict[str, dict[PlayerColour, Counter]] = defaultdict(
             lambda: defaultdict(Counter)
         )
+
+    def filter_by_opening(self, opening_fen: str) -> "Tree":
+        """
+        Filters the tree by a specific opening
+
+        Only children and downwards as well as parents and upwards are kept.
+        """
+        parents = self._get_parents_recursively(opening_fen)
+        children = self._get_children_recursively(opening_fen)
+
+        all_fens_to_keep = set(
+            [opening_fen] + [o.fen for o in parents] + [o.fen for o in children]
+        )
+
+        nodes_to_keep = {k: v for k, v in self.nodes.items() if k in all_fens_to_keep}
+        edges_to_keep = {k: v for k, v in self.edges.items() if k in all_fens_to_keep}
+        edges_to_keep = self._prune_edges_by_target(all_fens_to_keep, edges_to_keep)
+
+        tree = Tree()
+        tree.nodes = nodes_to_keep
+        tree.edges = edges_to_keep
+
+        return tree
+
+    @staticmethod
+    def _prune_edges_by_target(
+        nodes_to_keep: set[str], edges: dict[str, dict[PlayerColour, Counter]]
+    ) -> dict[str, dict[PlayerColour, Counter]]:
+        """Prunes the edges by the target"""
+        return {
+            parent: {
+                colour: Counter(
+                    {
+                        child: count
+                        for child, count in children.items()
+                        if child in nodes_to_keep
+                    }
+                )
+                for colour, children in targets.items()
+            }
+            for parent, targets in edges.items()
+        }
+
+    def _get_parents_recursively(
+        self, opening_fen: str, colour: Optional[PlayerColour] = None
+    ) -> list[Opening]:
+        parents = self.parents(opening_fen, colour)
+        for parent in parents:
+            parents += self._get_parents_recursively(parent.fen, colour)
+        return parents
+
+    def _get_children_recursively(
+        self, opening_fen: str, colour: Optional[PlayerColour] = None
+    ) -> list[Opening]:
+        children = self.children(opening_fen, colour)
+        for child in children:
+            children += self._get_children_recursively(child.fen, colour)
+        return children
+
+    def parents(
+        self, opening_fen: str, colour: Optional[PlayerColour] = None
+    ) -> list[Opening]:
+        """Returns the heads of the opening"""
+        parents = []
+
+        for fen, child_counter in self.edges.items():
+            if colour is None:
+                tmp_d = reduce(lambda a, b: a + b, child_counter.values())
+            else:
+                tmp_d = child_counter[colour]
+
+            if opening_fen in tmp_d:
+                parents.append(self.nodes[fen])
+
+        return parents
+
+    def children(
+        self, opening_fen: str, colour: Optional[PlayerColour] = None
+    ) -> list[Opening]:
+        """Returns the children of the opening"""
+        if opening_fen not in self.edges:
+            return []
+        if colour is None:
+            return list(
+                chain.from_iterable(
+                    [
+                        [self.nodes[f] for f in children]
+                        for children in self.edges[opening_fen].values()
+                    ]
+                )
+            )
+        else:
+            return [self.nodes[f] for f in self.edges[opening_fen][colour].keys()]
 
     def __repr__(self):
         string_repr = ""
@@ -80,11 +173,6 @@ class Tree:
         # the last colour in the list -- need to think if this is a good idea
         self.edges[head.fen][opening.colour[-1]][opening.fen] += 1
 
-    def most_common_child(self, opening: Opening, n: int = 1):
-        # TODO needs updating
-        # return self.graph[opening].most_common(n)
-        pass
-
     def get_opening_by_name_and_move(self, name: str, move: int) -> Optional[Opening]:
         """Gets an opening by name and move"""
         for opening in self.nodes.values():
@@ -94,7 +182,7 @@ class Tree:
     def to_sankey(self, prune_below_count: int = 0) -> dict[str, dict]:
         """Creates a Sankey diagram from the tree and saves in the provided path"""
         index_lookup = list(self.nodes.keys())
-        labels = [f"{op.eco}" for op in self.nodes.values()]
+        labels = [f"{op.name}" for op in self.nodes.values() if op.fen != self.root.fen]
 
         nodes = {
             "label": labels,
@@ -102,6 +190,8 @@ class Tree:
 
         source, target, value = [], [], []
         for s, colour_counter in self.edges.items():
+            if s == self.root.fen:
+                continue
             t_counter = reduce(lambda a, b: a + b, colour_counter.values())
             for t, v in t_counter.items():
                 if v < prune_below_count:

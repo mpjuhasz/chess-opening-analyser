@@ -28,10 +28,15 @@ class Visualiser:
                         value=links["value"],
                     ),
                 )
-            ]
+            ],
+            layout=go.Layout(
+                title="Openings tree",
+                font=dict(size=10),
+                width=1500,
+                height=500,
+            ),
         )
 
-        fig.update_layout(title_text="Openings tree", font_size=10)
         return fig
 
     @classmethod
@@ -39,11 +44,7 @@ class Visualiser:
         """Takes a dataframe with the time points as columns, and openings as rows"""
         df = df.xs(move, level=1).div(df.xs(move, level=1).sum(axis=0))
         n, m = df.shape
-        print(n, m)
-
-        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(m * 0.25, n * 0.25))
-
-        # df = df[df.apply(lambda x: max(x) > 0.05, axis=1)]
+        fig, ax = plt.subplots(figsize=(16, 4))
 
         df.columns = df.columns.strftime("%Y-%m-%d")  # type: ignore
 
