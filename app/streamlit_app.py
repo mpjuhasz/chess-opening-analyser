@@ -6,7 +6,9 @@ from chess.svg import board, Arrow
 
 from next_move.games import PlayerColour
 from next_move.visualiser.visualiser import Visualiser
+from next_move.openings.transformers import Transformer
 from cli.analyse_openings import run_analysis
+from app.app_helpers import color_value
 
 st.set_page_config(layout="wide")
 st.title("Analyse chess games")
@@ -32,9 +34,9 @@ if player_id:
         elif option == "Timeline":
             col1, col2 = st.columns(2)
             with col1:
-                breakdown = st.selectbox(
+                resample_interval = st.selectbox(
                     "Choose breakdown period",
-                    ("M", "W", "D"),
+                    ("W", "M", "Y"),
                 )
                 colour = st.selectbox(
                     "Choose colour",
@@ -44,24 +46,29 @@ if player_id:
                 occurrence_threshold = st.slider(
                     "Minimum number of occurrences", 0, 100, 5
                 )
-            df = st.session_state.trees[player_id].to_timeline(
-                breakdown=breakdown, occurrence_threshold=occurrence_threshold
+
+            assert resample_interval is not None
+
+            df = Transformer.tree_to_timeline(
+                st.session_state.trees[player_id],
+                resample_interval=resample_interval,
+                occurrence_threshold=occurrence_threshold,
             )
 
             if colour != "Both":
                 df = df.xs(colour, level=2)
+            else:
+                # groupby name and move and sum everything
+                df = df.groupby(level=[0, 1]).sum()
 
             move = st.slider(
                 "Number of moves", 0, max(df.index.get_level_values(1).astype(int)), 1
             )
+            assert isinstance(df, pd.DataFrame)
             fig = Visualiser.timeline(df, move)
             st.pyplot(fig)
         elif option == "Opening strength":
-            df = st.session_state.trees[player_id].to_opening_strength()
-            df["mean_score_in_n_moves"] = df["score_in_n_moves"].apply(
-                lambda x: sum(x) / len(x)
-            )
-            df.drop("score_in_n_moves", axis=1, inplace=True)
+            df = Transformer.to_opening_strength(st.session_state.trees[player_id])
 
             col1, col2 = st.columns(2)
             with col1:
@@ -75,16 +82,11 @@ if player_id:
                 )
 
             with col2:
-                n_moves = st.slider("Number of moves", 0, df.index.levels[1].max(), 1)
+                n_moves = st.slider("Number of moves", 0, df.index.levels[1].max(), 1)  # type: ignore
                 minimum_occurrence = st.slider("Minimum occurrence", 0, 100, 5)
                 order_by = st.selectbox(
                     "Order by column",
-                    (
-                        "mean_following_score",
-                        "mean_win_rate",
-                        "mean_score_in_n_moves",
-                        "occurrence",
-                    ),
+                    df.columns,
                 )
 
             st.table(
@@ -92,19 +94,18 @@ if player_id:
                 .xs(n_moves, level=1)
                 .xs(colour, level=1)
                 .sort_values(order_by, ascending=strong_or_weak == "Weak")
-                .head(20)
+                .style.applymap(
+                    color_value,
+                    subset=list(set(df.columns) - {"occurrence"}),
+                )
             )
         elif option == "Single opening":
-            df = st.session_state.trees[player_id].to_opening_strength()
-            # col1, col2 = st.columns(2)
+            df = Transformer.to_opening_strength(st.session_state.trees[player_id])
 
-            # with col1:
             name = st.selectbox(
                 "Choose opening",
-                df.index.levels[0],
+                df.index.levels[0],  # type: ignore
             )
-
-            # with col2:
             if name:
                 _df = df.xs(name, level=0)
 
@@ -180,12 +181,6 @@ if player_id:
                                 )
                                 .sort_values(by="occurrence", ascending=False)  # type: ignore
                             )
-
-                            def color_value(val):
-                                r = 255 - int(75 * val)
-                                g = 200 + int(55 * val)
-                                b = 255
-                                return f"background-color: rgb({r},{g},{b})"
 
                             st.table(
                                 move_df.style.applymap(
