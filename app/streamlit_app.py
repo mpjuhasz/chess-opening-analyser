@@ -104,10 +104,16 @@ if player_id:
             if name:
                 _df = df.xs(name, level=0)
 
-                move = st.selectbox(
-                    "Choose move",
-                    _df.index.get_level_values(0).unique(),
-                )
+                col1, col2 = st.columns(2)
+                with col1:
+                    move = st.selectbox(
+                        "Choose move",
+                        _df.index.get_level_values(0).unique(),
+                    )
+                with col2:
+                    next_move_mode = st.selectbox(
+                        "Choose next-move vis", ("DataFrame", "Plot")
+                    )
 
                 if move:
                     opening = st.session_state.trees[
@@ -136,6 +142,7 @@ if player_id:
                                 "results",
                                 "score_in_n_moves",
                                 "following_game_scores",
+                                "dates",
                             ]
 
                             move_df = pd.DataFrame(
@@ -146,23 +153,33 @@ if player_id:
                                 },
                             )
 
-                            move_df = (
-                                move_df.groupby("following_moves")
-                                .agg(
-                                    {
-                                        **{sc: "mean" for sc in score_cols},
-                                        "occurrence": "sum",
-                                    }
+                            if next_move_mode == "DataFrame":
+                                move_df.drop("dates", axis=1, inplace=True)
+                                move_df = (
+                                    move_df.groupby("following_moves")
+                                    .agg(
+                                        {
+                                            **{
+                                                sc: "mean"
+                                                for sc in score_cols
+                                                if sc != "dates"
+                                            },
+                                            "occurrence": "sum",
+                                        }
+                                    )
+                                    .sort_values(by="occurrence", ascending=False)  # type: ignore
                                 )
-                                .sort_values(by="occurrence", ascending=False)  # type: ignore
-                            )
 
-                            st.table(
-                                move_df.style.applymap(
-                                    color_value,
-                                    subset=score_cols,
+                                st.table(
+                                    move_df.style.applymap(
+                                        color_value,
+                                        subset=score_cols,
+                                    )
                                 )
-                            )
+                            else:
+                                move_df = move_df.explode("dates")
+                                fig = Visualiser.scatter_from_next_moves(move_df)
+                                st.pyplot(fig)
 
                         filtered_tree = st.session_state.trees[
                             player_id

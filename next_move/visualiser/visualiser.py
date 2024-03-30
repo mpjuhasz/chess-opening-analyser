@@ -86,3 +86,13 @@ class Visualiser:
             arrows=arrows,
             size=600,
         )
+
+    @classmethod
+    def scatter_from_next_moves(cls, df: pd.DataFrame) -> Figure:
+        fig, ax = plt.subplots(figsize=(6, 6))
+
+        sns.scatterplot(
+            df, x="dates", y="score_in_n_moves", hue="following_moves", ax=ax
+        )
+
+        return fig
