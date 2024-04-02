@@ -7,7 +7,7 @@ from next_move.games import PlayerColour
 from next_move.visualiser.visualiser import Visualiser
 from next_move.openings.transformers import Transformer
 from cli.analyse_openings import run_analysis
-from app.app_helpers import color_value
+from app.app_helpers import color_value, timeline_page, opening_strength_page
 
 st.set_page_config(layout="wide")
 st.title("Analyse chess games")
@@ -28,167 +28,113 @@ if player_id:
             ("Timeline", "Opening strength", "Single opening"),
         )
         if option == "Timeline":
-            col1, col2 = st.columns(2)
-            with col1:
-                resample_interval = st.selectbox(
-                    "Choose breakdown period",
-                    ("W", "M", "Y"),
-                )
-                colour = st.selectbox(
-                    "Choose colour",
-                    ("Black", "White", "Both"),
-                )
-            with col2:
-                occurrence_threshold = st.slider(
-                    "Minimum number of occurrences", 0, 100, 5
-                )
-
-            assert resample_interval is not None
-
-            df = Transformer.tree_to_timeline(
-                st.session_state.trees[player_id],
-                resample_interval=resample_interval,
-                occurrence_threshold=occurrence_threshold,
-            )
-
-            if colour != "Both":
-                df = df.xs(colour, level=2)
-            else:
-                df = df.groupby(level=[0, 1]).sum()
-
-            move = st.slider(
-                "Number of moves", 0, max(df.index.get_level_values(1).astype(int)), 1
-            )
-            assert isinstance(df, pd.DataFrame)
-            fig = Visualiser.timeline(df, move)
-            st.pyplot(fig)
+            timeline_page(player_id)
         elif option == "Opening strength":
-            df = Transformer.to_opening_strength(st.session_state.trees[player_id])
-
-            col1, col2 = st.columns(2)
-            with col1:
-                colour = st.selectbox(
-                    "Choose colour",
-                    ("Black", "White"),
-                )
-                strong_or_weak = st.radio(
-                    "Show top openings by",
-                    ("Strong", "Weak"),
-                )
-
-            with col2:
-                n_moves = st.slider("Number of moves", 0, df.index.levels[1].max(), 1)  # type: ignore
-                minimum_occurrence = st.slider("Minimum occurrence", 0, 100, 5)
-                order_by = st.selectbox(
-                    "Order by column",
-                    df.columns,
-                )
-
-            st.table(
-                df[df["occurrence"] > minimum_occurrence]
-                .xs(n_moves, level=1)
-                .xs(colour, level=1)
-                .sort_values(order_by, ascending=strong_or_weak == "Weak")
-                .style.applymap(
-                    color_value,
-                    subset=list(set(df.columns) - {"occurrence"}),
-                )
-            )
+            opening_strength_page(player_id)
         elif option == "Single opening":
             df = Transformer.to_opening_strength(st.session_state.trees[player_id])
 
-            name = st.selectbox(
-                "Choose opening",
-                df.index.levels[0],  # type: ignore
+            opening_families = sorted(
+                set(of.split(":")[0] for of in df.index.get_level_values(0))
             )
-            if name:
-                _df = df.xs(name, level=0)
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    move = st.selectbox(
-                        "Choose move",
-                        _df.index.get_level_values(0).unique(),
-                    )
-                with col2:
-                    next_move_mode = st.selectbox(
-                        "Choose next-move vis", ("DataFrame", "Plot")
-                    )
+            family = st.selectbox(
+                "Choose opening family",
+                opening_families,
+            )
 
-                if move:
-                    opening = st.session_state.trees[
-                        player_id
-                    ].get_opening_by_name_and_move(name, move)
+            if family:
+                df = df[df.index.get_level_values(0).str.startswith(family)]
 
-                    opening = opening.partition_by_colour(
-                        PlayerColour.B if move % 2 == 1 else PlayerColour.W
-                    )
+                name = st.selectbox(
+                    "Choose opening",
+                    sorted(df.index.get_level_values(0).unique()),  # type: ignore
+                )
+                if name:
+                    _df = df.xs(name, level=0)
 
-                    if opening:
-                        st.write(opening.dict())
-
-                        board_string = Visualiser.board_from_opening(opening)
-
-                        col1, col2 = st.columns(2)
-
-                        with col1:
-                            st.markdown(
-                                board_string,
-                                unsafe_allow_html=True,
-                            )
-
-                        with col2:
-                            score_cols = [
-                                "results",
-                                "score_in_n_moves",
-                                "following_game_scores",
-                                "dates",
-                            ]
-
-                            move_df = pd.DataFrame(
-                                {
-                                    "following_moves": opening.following_moves,
-                                    **{sc: getattr(opening, sc) for sc in score_cols},
-                                    "occurrence": 1,
-                                },
-                            )
-
-                            if next_move_mode == "DataFrame":
-                                move_df.drop("dates", axis=1, inplace=True)
-                                move_df = (
-                                    move_df.groupby("following_moves")
-                                    .agg(
-                                        {
-                                            **{
-                                                sc: "mean"
-                                                for sc in score_cols
-                                                if sc != "dates"
-                                            },
-                                            "occurrence": "sum",
-                                        }
-                                    )
-                                    .sort_values(by="occurrence", ascending=False)  # type: ignore
-                                )
-
-                                st.table(
-                                    move_df.style.applymap(
-                                        color_value,
-                                        subset=score_cols,
-                                    )
-                                )
-                            else:
-                                move_df = move_df.explode("dates")
-                                fig = Visualiser.scatter_from_next_moves(move_df)
-                                st.pyplot(fig)
-
-                        filtered_tree = st.session_state.trees[
-                            player_id
-                        ].filter_by_opening(opening.fen)
-
-                        fig = Visualiser.sankey(**filtered_tree.to_sankey())
-                        st.plotly_chart(fig)
-
-                    else:
-                        st.write(
-                            "There are no games where it was your turn at this move."
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        move = st.selectbox(
+                            "Choose move",
+                            _df.index.get_level_values(0).unique(),
                         )
+                    with col2:
+                        next_move_mode = st.selectbox(
+                            "Choose next-move vis", ("DataFrame", "Plot")
+                        )
+
+                    if move:
+                        opening = st.session_state.trees[
+                            player_id
+                        ].get_opening_by_name_and_move(name, move)
+
+                        opening = opening.partition_by_colour(
+                            PlayerColour.B if move % 2 == 1 else PlayerColour.W
+                        )
+
+                        if opening:
+                            board_string = Visualiser.board_from_opening(opening)
+
+                            col1, col2 = st.columns(2)
+
+                            with col1:
+                                st.markdown(
+                                    board_string,
+                                    unsafe_allow_html=True,
+                                )
+
+                            with col2:
+                                score_cols = [
+                                    "results",
+                                    "score_in_n_moves",
+                                    "following_game_scores",
+                                    # "dates",
+                                ]
+
+                                move_df = pd.DataFrame(
+                                    {
+                                        "following_moves": opening.following_moves,
+                                        **{
+                                            sc: getattr(opening, sc)
+                                            for sc in score_cols + ["dates"]
+                                        },
+                                        "occurrence": 1,
+                                    },
+                                )
+
+                                if next_move_mode == "DataFrame":
+                                    move_df.drop("dates", axis=1, inplace=True)
+                                    move_df = (
+                                        move_df.groupby("following_moves")
+                                        .agg(
+                                            {
+                                                **{sc: "mean" for sc in score_cols},
+                                                "occurrence": "sum",
+                                            }
+                                        )
+                                        .sort_values(by="occurrence", ascending=False)  # type: ignore
+                                    )
+
+                                    st.table(
+                                        move_df.style.applymap(
+                                            color_value,
+                                            subset=score_cols,
+                                        )
+                                    )
+                                else:
+                                    move_df = move_df.explode("dates")
+                                    fig = Visualiser.scatter_from_next_moves(move_df)
+                                    st.pyplot(fig)
+
+                            filtered_tree = st.session_state.trees[
+                                player_id
+                            ].filter_by_opening(opening.fen)
+
+                            fig = Visualiser.sankey(**filtered_tree.to_sankey())
+                            st.plotly_chart(fig)
+
+                        else:
+                            st.write(
+                                "There are no games where it was your turn at this move."
+                            )
