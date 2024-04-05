@@ -78,8 +78,8 @@ def test_tree_to_opening_strength():
     assert opening_strength.shape == (3, 4)
     assert opening_strength.columns.tolist() == [
         "occurrence",
-        "mean_following_score",
-        "mean_win_rate",
+        "mean_following_game_scores",
+        "mean_results",
         "mean_score_in_n_moves",
     ]
     assert (
@@ -87,11 +87,11 @@ def test_tree_to_opening_strength():
     )
     assert (
         opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))][
-            "mean_following_score"
+            "mean_following_game_scores"
         ]
         == 0.31
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["mean_win_rate"]
+        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["mean_results"]
         == 0.50
     )
