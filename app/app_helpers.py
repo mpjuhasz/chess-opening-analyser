@@ -207,5 +207,5 @@ def _single_opening_visuals(
 
     filtered_tree = st.session_state.trees[player_id].filter_by_opening(opening.fen)
 
-    fig = Visualiser.sankey(**filtered_tree.to_sankey())
+    fig = Visualiser.sankey(**Transformer.tree_to_sankey(filtered_tree))
     st.plotly_chart(fig)

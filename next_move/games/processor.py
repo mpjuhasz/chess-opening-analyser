@@ -71,7 +71,7 @@ class GameProcessor:
                     **engine_analysis,  #  type: ignore
                 )
 
-                self.tree.add_opening(opening, head=head)
+                self.tree.add_opening(opening, head=head, player_colour=colour)
                 head = opening
             else:
                 empty_moves += 1

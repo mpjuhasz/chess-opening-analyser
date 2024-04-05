@@ -42,8 +42,8 @@ def load_tree():
         score_in_n_moves=[-0.1, 0.1, -0.1, 0.1],
         best_next_move="c4d5",
     )
-    tree.add_opening(first_opening, head=tree.root)
-    tree.add_opening(second_opening, head=tree.root)
+    tree.add_opening(first_opening, head=tree.root, player_colour=PlayerColour.W)
+    tree.add_opening(second_opening, head=tree.root, player_colour=PlayerColour.W)
     return tree
 
 

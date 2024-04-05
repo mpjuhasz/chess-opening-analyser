@@ -1,4 +1,5 @@
 from typing import Literal
+from functools import reduce
 
 import numpy as np
 from next_move.games import PlayerColour
@@ -14,6 +15,36 @@ class Transformer:
     SEPARATOR = ":::"
     INDEX_NAMES = ["name", "move", "colour"]
     INDEX_TYPES = [str, int, str]
+
+    @classmethod
+    def tree_to_sankey(cls, tree: Tree, prune_below_count: int = 0) -> dict[str, dict]:
+        """Transforms the tree into a dictionary format that facilitates the creation of a Sankey diagram"""
+        index_lookup = list(tree.nodes.keys())
+        labels = [f"{op.name}" for op in tree.nodes.values() if op.fen != tree.root.fen]
+
+        nodes = {
+            "label": labels,
+        }
+
+        source, target, value = [], [], []
+        for s, colour_counter in tree.edges.items():
+            if s == tree.root.fen:
+                continue
+            t_counter = reduce(lambda a, b: a + b, colour_counter.values())
+            for t, v in t_counter.items():
+                if v < prune_below_count:
+                    continue
+                source.append(index_lookup.index(s))
+                target.append(index_lookup.index(t))
+                value.append(v)
+
+        links = {
+            "source": source,
+            "target": target,
+            "value": value,
+        }
+
+        return {"nodes": nodes, "links": links}
 
     @classmethod
     def tree_to_timeline(

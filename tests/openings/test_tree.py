@@ -36,8 +36,8 @@ def load_tree():
         best_next_move="c4d5",
     )
 
-    tree.add_opening(first_opening, head=tree.root)
-    tree.add_opening(second_opening, head=tree.root)
+    tree.add_opening(first_opening, head=tree.root, player_colour=PlayerColour.W)
+    tree.add_opening(second_opening, head=tree.root, player_colour=PlayerColour.B)
     return tree
 
 
@@ -85,9 +85,9 @@ def load_tree_2():
         score_in_n_moves=[0.04, 0.14, 0.43],
         best_next_move="d2d4",
     )
-    tree.add_opening(first_opening, head=tree.root)
-    tree.add_opening(second_opening, head=first_opening)
-    tree.add_opening(third_opening, head=first_opening)
+    tree.add_opening(first_opening, head=tree.root, player_colour=PlayerColour.W)
+    tree.add_opening(second_opening, head=first_opening, player_colour=PlayerColour.B)
+    tree.add_opening(third_opening, head=first_opening, player_colour=PlayerColour.W)
 
     # need to overwrite because of how the tree is created here
     tree.edges["rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"] = {
@@ -125,7 +125,7 @@ def test_tree():
         best_next_move="c4d5",
     )
 
-    tree.add_opening(first_opening, head=tree.root)
+    tree.add_opening(first_opening, head=tree.root, player_colour=PlayerColour.W)
 
     assert tree.edges[tree.root.fen][PlayerColour.W][first_opening.fen] == 1
     assert tree.nodes[first_opening.fen] == first_opening
