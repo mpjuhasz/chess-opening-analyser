@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "nextmove"
+name = "chess-opening-analyser"
 version = "0.1.0"
 description = ""
 authors = ["Matyas Juhasz <juhaszmp@gmail.com>"]
