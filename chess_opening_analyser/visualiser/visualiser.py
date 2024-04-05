@@ -92,7 +92,14 @@ class Visualiser:
         fig, ax = plt.subplots(figsize=(6, 6))
 
         sns.scatterplot(
-            df, x="dates", y="score_in_n_moves", hue="following_moves", ax=ax
+            df,
+            x="dates",
+            y="score_in_n_moves",
+            hue="following_moves",
+            ax=ax,
+            palette=sns.color_palette(
+                "pastel", n_colors=len(df["following_moves"].unique())
+            ),
         )
 
         return fig
