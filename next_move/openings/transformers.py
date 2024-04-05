@@ -88,24 +88,15 @@ class Transformer:
         - mean win rate
         - mean score in 5 moves
         """
+        score_columns = ["following_game_scores", "results", "score_in_n_moves"]
 
-        df = cls._tree_to_df(
-            tree,
-            ["following_game_scores", "results", "occurrence", "score_in_n_moves"],
-        )
+        df = cls._tree_to_df(tree, ["occurrence"] + score_columns)
 
-        df["mean_following_score"] = df["following_game_scores"].apply(np.mean)
-        df["mean_win_rate"] = df["results"].apply(np.mean)
-        df["mean_score_in_n_moves"] = df["score_in_n_moves"].apply(np.mean)
+        for col in score_columns:
+            df[f"mean_{col}"] = df[col].apply(np.mean)
 
-        df.drop(
-            ["following_game_scores", "results", "score_in_n_moves"],
-            axis=1,
-            inplace=True,
-        )
-
+        df.drop(score_columns, axis=1, inplace=True)
         df.set_index("name", inplace=True)
-
         df.index = cls._create_multi_index(df)
 
         return df
