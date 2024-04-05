@@ -1,8 +1,8 @@
 from datetime import datetime
-from next_move.games import PlayerColour
-from next_move.openings.opening import Opening
-from next_move.openings.transformers import Transformer
-from next_move.openings.tree import Tree
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.openings.opening import Opening
+from chess_opening_analyser.openings.transformers import Transformer
+from chess_opening_analyser.openings.tree import Tree
 
 import pandas as pd
 
@@ -78,8 +78,8 @@ def test_tree_to_opening_strength():
     assert opening_strength.shape == (3, 4)
     assert opening_strength.columns.tolist() == [
         "occurrence",
-        "mean_following_score",
-        "mean_win_rate",
+        "mean_following_game_scores",
+        "mean_results",
         "mean_score_in_n_moves",
     ]
     assert (
@@ -87,11 +87,11 @@ def test_tree_to_opening_strength():
     )
     assert (
         opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))][
-            "mean_following_score"
+            "mean_following_game_scores"
         ]
         == 0.31
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["mean_win_rate"]
+        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["mean_results"]
         == 0.50
     )

@@ -1,5 +1,5 @@
 import requests
-from next_move.games import GameRetriever
+from chess_opening_analyser.games import GameRetriever
 from itertools import chain
 from typing import Optional
 from tqdm import tqdm

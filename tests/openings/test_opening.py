@@ -1,5 +1,5 @@
-from next_move.games import PlayerColour
-from next_move.openings.opening import Opening
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.openings.opening import Opening
 from datetime import datetime
 
 

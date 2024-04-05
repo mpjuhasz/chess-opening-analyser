@@ -1,10 +1,10 @@
 from typing import Optional
-from next_move.openings.opening import Opening
-from next_move.openings.tree import Tree
-from next_move.engine.stockfish import Stockfish
-from next_move.opening_directory import EcoDB
-from next_move.games import PlayerColour
-from next_move.logger import logger
+from chess_opening_analyser.openings.opening import Opening
+from chess_opening_analyser.openings.tree import Tree
+from chess_opening_analyser.engine.stockfish import Stockfish
+from chess_opening_analyser.opening_directory import EcoDB
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.logger import logger
 
 import io
 

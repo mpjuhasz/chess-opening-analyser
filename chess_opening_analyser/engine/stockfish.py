@@ -1,6 +1,6 @@
 from chess import Board, engine
 from pathlib import Path
-from next_move.games import PlayerColour
+from chess_opening_analyser.games import PlayerColour
 
 
 class Stockfish:

@@ -6,7 +6,7 @@ import seaborn as sns
 import chess
 from chess.svg import board, Arrow
 
-from next_move.openings.opening import Opening
+from chess_opening_analyser.openings.opening import Opening
 
 
 class Visualiser:

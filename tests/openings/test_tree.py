@@ -1,8 +1,8 @@
 from collections import Counter
 from datetime import datetime
-from next_move.games import PlayerColour
-from next_move.openings.tree import Tree
-from next_move.openings.opening import Opening
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.openings.tree import Tree
+from chess_opening_analyser.openings.opening import Opening
 
 
 def load_tree():

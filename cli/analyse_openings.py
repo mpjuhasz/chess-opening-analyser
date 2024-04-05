@@ -1,8 +1,8 @@
-from next_move.engine.stockfish import Stockfish
-from next_move.games.chess_com import ChessCom
-from next_move.openings.tree import Tree
-from next_move.games.processor import GameProcessor
-from next_move.opening_directory import EcoDB
+from chess_opening_analyser.engine.stockfish import Stockfish
+from chess_opening_analyser.games.chess_com import ChessCom
+from chess_opening_analyser.openings.tree import Tree
+from chess_opening_analyser.games.processor import GameProcessor
+from chess_opening_analyser.opening_directory import EcoDB
 
 # from next_move.visualiser.visualiser import Visualiser
 

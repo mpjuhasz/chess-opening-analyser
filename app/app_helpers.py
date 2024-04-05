@@ -1,8 +1,8 @@
 from typing import Literal
-from next_move.games import PlayerColour
-from next_move.openings.opening import Opening
-from next_move.openings.transformers import Transformer
-from next_move.visualiser.visualiser import Visualiser
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.openings.opening import Opening
+from chess_opening_analyser.openings.transformers import Transformer
+from chess_opening_analyser.visualiser.visualiser import Visualiser
 
 import streamlit as st
 import pandas as pd

@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# local caches
+cache/
+chess_opening_analyser/cache/
+
+# mac
+.DS_Store
+.idea/

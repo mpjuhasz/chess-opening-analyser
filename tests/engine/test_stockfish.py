@@ -1,5 +1,5 @@
-from next_move.engine.stockfish import Stockfish
-from next_move.games import PlayerColour
+from chess_opening_analyser.engine.stockfish import Stockfish
+from chess_opening_analyser.games import PlayerColour
 
 import pytest
 
