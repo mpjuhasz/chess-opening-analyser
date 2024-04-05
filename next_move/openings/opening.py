@@ -17,7 +17,7 @@ class Opening(BaseModel):
     dates: list[datetime] = []
     results: list[float] = []
     occurrence: int = 0
-    following_moves: list[str] = []
+    following_moves: list[Optional[str]] = []
     following_game_scores: list[float] = []
     score_in_n_moves: list[float] = []
     best_next_move: str = ""
@@ -73,7 +73,7 @@ class Opening(BaseModel):
         colour: PlayerColour,
         date: datetime,
         result: float,
-        following_move: str,
+        following_move: Optional[str],
         score: float,
         best_move: str,
     ):

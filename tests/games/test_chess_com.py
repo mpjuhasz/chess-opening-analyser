@@ -1,7 +1,7 @@
 from next_move.games.chess_com import ChessCom
 from chess import pgn
 import io
-from data_loader import load_game
+from .data_loader import load_game
 from datetime import datetime, timedelta
 
 # game attributes: 'parent', 'move', 'variations', 'comment', 'starting_comment', 'nags', 'headers', 'errors'

@@ -23,6 +23,7 @@ pyright = "^1.1.351"
 matplotlib = "^3.8.3"
 seaborn = "^0.13.2"
 streamlit = "^1.31.1"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

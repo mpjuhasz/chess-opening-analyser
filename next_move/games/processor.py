@@ -10,7 +10,7 @@ import io
 
 from itertools import zip_longest
 from datetime import datetime
-from chess.pgn import Game, read_game
+from chess.pgn import Game, read_game, ChildNode
 
 
 class GameProcessor:
@@ -47,7 +47,9 @@ class GameProcessor:
         fens = []
         scores = []
 
-        for move in game.mainline():
+        moves = list(game.mainline())
+
+        for move in moves:
             if empty_moves > 5:
                 break
 
@@ -65,11 +67,11 @@ class GameProcessor:
                 opening.update_opening(
                     **game_metadata,  #  type: ignore
                     colour=colour,
-                    following_move=move.uci(),
+                    following_move=self._next_move(openings_data["num_moves"], moves),
                     **engine_analysis,  #  type: ignore
                 )
 
-                self.tree.add_opening(opening, head=head)
+                self.tree.add_opening(opening, head=head, player_colour=colour)
                 head = opening
             else:
                 empty_moves += 1
@@ -97,6 +99,13 @@ class GameProcessor:
         """
         board, turn, castling, en_passant, _, _ = fen.split()
         return f"{board} {turn} {castling} {en_passant}"
+
+    @staticmethod
+    def _next_move(move_num: int, moves: list[ChildNode]) -> Optional[str]:
+        """Gets the following move on the board"""
+        if move_num < len(moves):
+            return moves[move_num].uci()
+        return None
 
     @staticmethod
     def _read_game(game_pgn: str) -> Game:
