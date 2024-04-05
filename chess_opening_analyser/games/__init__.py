@@ -12,7 +12,7 @@ class PlayerColour(str, Enum):
 
 
 class GameRetriever(ABC):
-    CACHE_DIR = Path("next_move/cache")
+    CACHE_DIR = Path("chess_opening_analyser/cache")
 
     def __init__(self):
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
