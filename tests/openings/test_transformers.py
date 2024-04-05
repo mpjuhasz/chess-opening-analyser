@@ -1,8 +1,8 @@
 from datetime import datetime
-from next_move.games import PlayerColour
-from next_move.openings.opening import Opening
-from next_move.openings.transformers import Transformer
-from next_move.openings.tree import Tree
+from chess_opening_analyser.games import PlayerColour
+from chess_opening_analyser.openings.opening import Opening
+from chess_opening_analyser.openings.transformers import Transformer
+from chess_opening_analyser.openings.tree import Tree
 
 import pandas as pd
 

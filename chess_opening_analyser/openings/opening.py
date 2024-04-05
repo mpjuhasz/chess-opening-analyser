@@ -5,7 +5,7 @@ from collections import defaultdict, Counter
 
 import numpy as np
 
-from next_move.games import PlayerColour
+from chess_opening_analyser.games import PlayerColour
 
 
 class Opening(BaseModel):

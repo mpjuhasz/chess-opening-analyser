@@ -1,4 +1,4 @@
-from next_move.games.chess_com import ChessCom
+from chess_opening_analyser.games.chess_com import ChessCom
 from chess import pgn
 import io
 from .data_loader import load_game

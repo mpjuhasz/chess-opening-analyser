@@ -1,4 +1,4 @@
-from next_move.opening_directory import EcoDB
+from chess_opening_analyser.opening_directory import EcoDB
 
 
 def test_eco_db():
