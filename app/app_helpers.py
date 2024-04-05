@@ -1,3 +1,6 @@
+from typing import Literal
+from next_move.games import PlayerColour
+from next_move.openings.opening import Opening
 from next_move.openings.transformers import Transformer
 from next_move.visualiser.visualiser import Visualiser
 
@@ -86,3 +89,123 @@ def opening_strength_page(player_id: str):
             subset=list(set(df.columns) - {"occurrence"}),
         )
     )
+
+
+def single_opening_page(player_id):
+    """Creates the single opening page"""
+    df = Transformer.to_opening_strength(st.session_state.trees[player_id])
+
+    opening_families = sorted(
+        set(of.split(":")[0] for of in df.index.get_level_values(0))
+    )
+
+    family = st.selectbox(
+        "Choose opening family",
+        opening_families,
+    )
+
+    if family:
+        df = df[df.index.get_level_values(0).str.startswith(family)]
+
+        name = st.selectbox(
+            "Choose opening",
+            sorted(df.index.get_level_values(0).unique()),  # type: ignore
+        )
+        if name:
+            _df = df.xs(name, level=0)
+
+            col1, col2 = st.columns(2)
+            with col1:
+                move = st.selectbox(
+                    "Choose move",
+                    _df.index.get_level_values(0).unique(),
+                    index=0,
+                )
+            with col2:
+                next_move_mode = st.selectbox(
+                    "Choose next-move vis",
+                    ("DataFrame", "Plot"),
+                    index=0,
+                )
+
+            assert move is not None  # mollify pyright
+            opening = st.session_state.trees[player_id].get_opening_by_name_and_move(
+                name, move
+            )
+
+            opening = opening.partition_by_colour(
+                PlayerColour.B if move % 2 == 1 else PlayerColour.W
+            )
+
+            if opening and next_move_mode is not None:  # mollify pyright
+                _single_opening_visuals(opening, player_id, next_move_mode)
+            else:
+                st.write("There are no games where it was your turn at this move.")
+
+
+def _single_opening_visuals(
+    opening: Opening, player_id: str, next_move_mode: Literal["DataFrame", "Plot"]
+):
+    """
+    Creates the visualisations for the single opening page
+
+    These currently include:
+    - The board at the opening with arrows for the following moves
+    - A table or scatter-plot of the following moves with their scores
+    - A sankey diagram of the openings leading up to this one and following from it
+    """
+    board_string = Visualiser.board_from_opening(opening)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown(
+            board_string,
+            unsafe_allow_html=True,
+        )
+
+    with col2:
+        score_cols = [
+            "results",
+            "score_in_n_moves",
+            "following_game_scores",
+        ]
+
+        move_df = pd.DataFrame(
+            {
+                **{
+                    sc: getattr(opening, sc)
+                    for sc in score_cols + ["dates", "following_moves"]
+                },
+                "occurrence": 1,
+            },
+        )
+
+        if next_move_mode == "DataFrame":
+            move_df.drop("dates", axis=1, inplace=True)
+            move_df = (
+                move_df.groupby("following_moves")
+                .agg(
+                    {
+                        **{sc: "mean" for sc in score_cols},
+                        "occurrence": "sum",
+                    }
+                )
+                .sort_values(by="occurrence", ascending=False)  # type: ignore
+            )
+
+            st.table(
+                move_df.style.applymap(
+                    color_value,
+                    subset=score_cols,
+                )
+            )
+        else:
+            move_df = move_df.explode("dates")
+            fig = Visualiser.scatter_from_next_moves(move_df)
+            st.pyplot(fig)
+
+    filtered_tree = st.session_state.trees[player_id].filter_by_opening(opening.fen)
+
+    fig = Visualiser.sankey(**filtered_tree.to_sankey())
+    st.plotly_chart(fig)
