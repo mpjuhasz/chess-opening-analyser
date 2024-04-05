@@ -23,7 +23,7 @@ There's a streamlit app with a simple UI that helps with interacting with the op
 make vis
 ```
 
-## Running the analysis CLI
+## Running the analysis CLI
 The analysis pipeline can also be run as a CLI tool to analyse all the games of a user.
 
 ```bash
