@@ -20,8 +20,8 @@ load_dotenv(find_dotenv())
 
 
 def run_analysis(player_id: str) -> Tree:
-    if Path(f"next_move/cache/trees/{player_id}.json").exists():
-        return Tree.from_json(f"next_move/cache/trees/{player_id}.json")
+    if Path(f"chess_opening_analyser/cache/trees/{player_id}.json").exists():
+        return Tree.from_json(f"chess_opening_analyser/cache/trees/{player_id}.json")
     else:
         tree = Tree()
         chess_com = ChessCom()
@@ -37,7 +37,7 @@ def run_analysis(player_id: str) -> Tree:
 
         stockfish.quit()  # it's fine for now, but will need to refactor this into a context manager
 
-        tree.to_json(f"next_move/cache/trees/{player_id}.json")
+        tree.to_json(f"chess_opening_analyser/cache/trees/{player_id}.json")
 
         return tree
 
