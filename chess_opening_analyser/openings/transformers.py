@@ -20,10 +20,20 @@ class Transformer:
     def tree_to_sankey(cls, tree: Tree, prune_below_count: int = 0) -> dict[str, dict]:
         """Transforms the tree into a dictionary format that facilitates the creation of a Sankey diagram"""
         index_lookup = list(tree.nodes.keys())
-        labels = [f"{op.name}" for op in tree.nodes.values() if op.fen != tree.root.fen]
+        labels = [
+            op.name.split(":")[0]
+            for op in tree.nodes.values()
+            if op.fen != tree.root.fen
+        ]
+        hovertext = [
+            op.name.split(":")[-1]
+            for op in tree.nodes.values()
+            if op.fen != tree.root.fen
+        ]
 
         nodes = {
             "label": labels,
+            "hovertext": hovertext,
         }
 
         source, target, value = [], [], []

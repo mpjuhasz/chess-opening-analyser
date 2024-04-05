@@ -21,6 +21,8 @@ class Visualiser:
                         thickness=20,
                         line=dict(color="black", width=0.5),
                         label=nodes["label"],
+                        customdata=nodes["hovertext"],
+                        hovertemplate="%{customdata}",
                     ),
                     link=dict(
                         source=links["source"],
@@ -29,12 +31,7 @@ class Visualiser:
                     ),
                 )
             ],
-            layout=go.Layout(
-                title="Openings tree",
-                font=dict(size=10),
-                width=1500,
-                height=500,
-            ),
+            layout=go.Layout(title="Openings tree", font=dict(size=10)),
         )
 
         return fig
@@ -89,7 +86,7 @@ class Visualiser:
 
     @classmethod
     def scatter_from_next_moves(cls, df: pd.DataFrame) -> Figure:
-        fig, ax = plt.subplots(figsize=(6, 6))
+        fig, ax = plt.subplots()
 
         sns.scatterplot(
             df,
@@ -98,8 +95,14 @@ class Visualiser:
             hue="following_moves",
             ax=ax,
             palette=sns.color_palette(
-                "pastel", n_colors=len(df["following_moves"].unique())
+                "husl", n_colors=len(df["following_moves"].unique())
             ),
         )
+
+        plt.xticks(rotation=90)
+        plt.xlabel("Date", fontsize=10)
+        plt.ylabel("Score in 5 moves", fontsize=10)
+        plt.ylim(0, 1)
+        plt.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=5)
 
         return fig

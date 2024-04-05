@@ -159,10 +159,7 @@ def _single_opening_visuals(
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown(
-            board_string,
-            unsafe_allow_html=True,
-        )
+        st.image(board_string, use_column_width=True)
 
     with col2:
         score_cols = [
@@ -208,4 +205,4 @@ def _single_opening_visuals(
     filtered_tree = st.session_state.trees[player_id].filter_by_opening(opening.fen)
 
     fig = Visualiser.sankey(**Transformer.tree_to_sankey(filtered_tree))
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
