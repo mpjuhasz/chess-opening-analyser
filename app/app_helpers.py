@@ -56,6 +56,7 @@ def opening_strength_page(player_id: str):
     df = Transformer.to_opening_strength(st.session_state.trees[player_id])
 
     col1, col2 = st.columns(2)
+
     with col1:
         colour = st.selectbox(
             "Choose colour",
@@ -65,11 +66,6 @@ def opening_strength_page(player_id: str):
             "Show top openings by",
             ("Strong", "Weak"),
         )
-
-        # family_or_opening = st.radio(
-        #     "Show by",
-        #     ("Family", "Opening"),
-        # )
 
     with col2:
         n_moves = st.slider("Number of moves", 0, df.index.levels[1].max(), 1)  # type: ignore

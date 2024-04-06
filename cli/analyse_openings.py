@@ -1,5 +1,6 @@
 from functools import reduce
 from multiprocessing import Pool
+from pathlib import Path
 from chess_opening_analyser.engine.stockfish import Stockfish
 from chess_opening_analyser.games.chess_com import ChessCom
 from chess_opening_analyser.openings.tree import Tree
@@ -34,28 +35,31 @@ def process_games_slice(games_slice, player_id, stockfish_dir, eco_db_path):
 
 
 def run_analysis(player_id: str, num_workers: int, limit: Optional[int] = None):
-    chess_com = ChessCom()
-    games = chess_com.get_all_games(player_id)
-    stockfish_dir = os.environ["STOCKFISH_DIR"]
-    eco_db_path = "eco/openings.json"
+    if Path(f"chess_opening_analyser/cache/trees/{player_id}.json").exists():
+        return Tree.from_json(f"chess_opening_analyser/cache/trees/{player_id}.json")
+    else:
+        chess_com = ChessCom()
+        games = chess_com.get_all_games(player_id)
+        stockfish_dir = os.environ["STOCKFISH_DIR"]
+        eco_db_path = "eco/openings.json"
 
-    if limit is not None:
-        games = games[:limit]
+        if limit is not None:
+            games = games[:limit]
 
-    games_chunks = [games[i::num_workers] for i in range(num_workers)]
+        games_chunks = [games[i::num_workers] for i in range(num_workers)]
 
-    with Pool(processes=num_workers) as pool:
-        process_args = [
-            (games_chunk, player_id, stockfish_dir, eco_db_path)
-            for games_chunk in games_chunks
-        ]
+        with Pool(processes=num_workers) as pool:
+            process_args = [
+                (games_chunk, player_id, stockfish_dir, eco_db_path)
+                for games_chunk in games_chunks
+            ]
 
-        trees = pool.starmap(process_games_slice, process_args)
+            trees = pool.starmap(process_games_slice, process_args)
 
-    tree = reduce(lambda x, y: x + y, trees)
-    tree.to_json(f"chess_opening_analyser/cache/trees/{player_id}.json")
+        tree = reduce(lambda x, y: x + y, trees)
+        tree.to_json(f"chess_opening_analyser/cache/trees/{player_id}.json")
 
-    return tree
+        return tree
 
 
 @click.command()
