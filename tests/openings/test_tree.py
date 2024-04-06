@@ -108,6 +108,36 @@ def load_tree_2():
     return tree
 
 
+def test_tree_add():
+    fen_1 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    fen_2 = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"
+    tree_1 = load_tree_2()
+    tree_2 = load_tree_2()
+
+    tree = tree_1 + tree_2
+
+    assert tree.nodes[fen_1].occurrence == 2
+    assert tree.edges[fen_1][PlayerColour.W][fen_2] == 4
+    assert (
+        tree.nodes[fen_2].colour == [PlayerColour.B, PlayerColour.W, PlayerColour.W] * 2
+    )
+
+
+def test_tree_add_2():
+    fen_1 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+
+    tree_1 = load_tree_2()
+    tree_1.edges[fen_1].pop(PlayerColour.B)
+    tree_2 = load_tree_2()
+    tree_2.edges[fen_1].pop(PlayerColour.W)
+
+    tree_sum = tree_1 + tree_2
+
+    assert isinstance(tree_sum.edges[fen_1][PlayerColour.W], Counter)
+    assert tree_sum.edges[fen_1][PlayerColour.W] == tree_1.edges[fen_1][PlayerColour.W]
+    assert tree_sum.edges[fen_1][PlayerColour.B] == tree_2.edges[fen_1][PlayerColour.B]
+
+
 def test_tree():
     tree = Tree()
     first_opening = Opening(

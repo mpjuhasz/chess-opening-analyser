@@ -2,13 +2,16 @@ from chess_opening_analyser.games import PlayerColour
 from chess_opening_analyser.openings.opening import Opening
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import Literal, Optional
+from typing import Optional
 from functools import reduce
 
 import json
-import numpy as np
-import pandas as pd
 from datetime import datetime
+
+
+def initialiser():
+    """Initialiser for the edges to make `Tree` pickleable"""
+    return defaultdict(Counter)
 
 
 class Tree:
@@ -37,9 +40,53 @@ class Tree:
                 num_moves=0,
             )
         }
-        self.edges: dict[str, dict[PlayerColour, Counter]] = defaultdict(
-            lambda: defaultdict(Counter)
-        )
+        self.edges: dict[str, dict[PlayerColour, Counter]] = defaultdict(initialiser)
+
+    def __add__(self, other: "Tree") -> "Tree":
+        """Adds two trees together"""
+        tree = Tree()
+        tree.nodes = self._add_nodes(self.nodes, other.nodes)
+        tree.edges = self._add_edges(self.edges, other.edges)
+        return tree
+
+    @staticmethod
+    def _add_nodes(
+        nodes_1: dict[str, Opening], nodes_2: dict[str, Opening]
+    ) -> dict[str, Opening]:
+        """
+        Adds two nodes dictionaries together
+
+        This utilises the `__add__` method of the `Opening` class.
+        """
+        return {
+            key: nodes_1.get(key) + nodes_2.get(key)  # type: ignore
+            for key in nodes_1.keys() | nodes_2.keys()
+        }
+
+    def _add_edges(
+        self,
+        edges_1: dict[str, dict[PlayerColour, Counter]],
+        edges_2: dict[str, dict[PlayerColour, Counter]],
+    ) -> dict[str, dict[PlayerColour, Counter]]:
+        """Adds two edges dictionaries together"""
+        return {
+            key: self._construct_colour_dict_for_edges(
+                edges_1.get(key, {}), edges_2.get(key, {})
+            )
+            for key in edges_1.keys() | edges_2.keys()
+        }
+
+    @staticmethod
+    def _construct_colour_dict_for_edges(
+        dict_1: dict[PlayerColour, Counter], dict_2: dict[PlayerColour, Counter]
+    ) -> dict:
+        new_dict = defaultdict(Counter)
+        for colour in [PlayerColour.W, PlayerColour.B]:
+            if colour in dict_1 or colour in dict_2:
+                new_dict[colour] = dict_1.get(colour, Counter()) + dict_2.get(
+                    colour, Counter()
+                )
+        return new_dict
 
     def filter_by_opening(self, opening_fen: str) -> "Tree":
         """

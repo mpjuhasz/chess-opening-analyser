@@ -50,7 +50,7 @@ class GameProcessor:
         moves = list(game.mainline())
 
         for move in moves:
-            if empty_moves > 5:
+            if empty_moves > self.MOVE_DELAY:
                 break
 
             fen = self._fen_parser(move.board().fen())
@@ -76,7 +76,21 @@ class GameProcessor:
             else:
                 empty_moves += 1
 
-        fillvalue = game_metadata["result"] if empty_moves <= 5 else -1.0
+        self._update_next_move_scores(fens, scores, empty_moves, game_metadata)
+
+    def _get_player_colour(self, game: Game) -> PlayerColour:
+        """Gets the colour of the player in the game"""
+        return PlayerColour.W if game.headers["White"] == self.user else PlayerColour.B
+
+    def _update_next_move_scores(
+        self,
+        fens: list[str],
+        scores: list[float],
+        empty_moves: int,
+        game_metadata: dict[str, datetime | float],
+    ) -> None:
+        """Updates the `score_in_n_moves` attribute of the nodes in the tree using the move delay"""
+        fillvalue = game_metadata["result"] if empty_moves <= self.MOVE_DELAY else -1.0
         assert isinstance(fillvalue, float), "The fillvalue should be a float"
 
         for fen, score_in_n_moves in zip_longest(
@@ -85,10 +99,6 @@ class GameProcessor:
             if fen in self.tree.nodes.keys():
                 assert isinstance(fen, str), "The FEN should be a string"
                 self.tree.nodes[fen].score_in_n_moves.append(score_in_n_moves)
-
-    def _get_player_colour(self, game: Game) -> PlayerColour:
-        """Gets the colour of the player in the game"""
-        return PlayerColour.W if game.headers["White"] == self.user else PlayerColour.B
 
     @staticmethod
     def _fen_parser(fen: str) -> str:
@@ -135,10 +145,9 @@ class GameProcessor:
 
     def _extract_result(self, termination: str) -> float:
         """Returns the final result of the game being 0 for a loss, 0.5 for a draw and 1 for a win"""
-        return (
-            1.0
-            if self.user + " won" in termination
-            else 0.5
-            if "draw" in termination
-            else 0.0
-        )
+        if self.user + " won" in termination:
+            return 1.0
+        elif "draw" in termination:
+            return 0.5
+        else:
+            return 0.0

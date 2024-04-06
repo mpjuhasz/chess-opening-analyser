@@ -8,8 +8,5 @@ install:
 test:
 	poetry run python -m pytest -vvv
 
-analyse:
-	poetry run python cli/analyse_openings.py --player-id $(player-id)
-
 vis:
 	poetry run streamlit run app/streamlit_app.py

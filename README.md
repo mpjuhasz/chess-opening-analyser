@@ -19,7 +19,7 @@ $ make install
 The analysis pipeline can also be run as a CLI tool to analyse all the games of a user.
 
 ```bash
-make analyse --player-id <PLAYER_ID>
+poetry run python cli/analyse_openings.py --player-id <PLAYER-ID> --limit <LIMIT> --num-workers <NUM-WORKERS>
 ```
 
 The results are saved locally in `tree.json`, which is the `Tree` object persisted to disk.

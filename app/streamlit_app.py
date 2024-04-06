@@ -17,7 +17,7 @@ if "trees" not in st.session_state:
 if player_id:
     if player_id not in st.session_state.trees:
         with st.spinner("Analysing games..."):
-            st.session_state.trees[player_id] = run_analysis(player_id)
+            st.session_state.trees[player_id] = run_analysis(player_id, num_workers=8)
 
     if st.session_state.trees:
         option = st.selectbox(

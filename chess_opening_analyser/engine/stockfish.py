@@ -1,5 +1,5 @@
+from functools import lru_cache
 from chess import Board, engine
-from pathlib import Path
 from chess_opening_analyser.games import PlayerColour
 
 
@@ -8,6 +8,7 @@ class Stockfish:
         self.engine = engine.SimpleEngine.popen_uci(stockfish_path)
         self.depth = analysis_depth
 
+    @lru_cache(maxsize=2**14)
     def get_best_move(
         self, fen: str, colour_played: PlayerColour
     ) -> dict[str, float | str]:
