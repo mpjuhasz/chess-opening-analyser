@@ -21,18 +21,3 @@ def test_game_processing_results(mocker):
     assert isinstance(metadata["date"], datetime)
     assert metadata["result"] == 0.5
     assert metadata["date"].year == 2023
-
-
-# def test_game_processing():
-#     game_str = load_game()
-#     tree = Tree()
-#     stockfish = Stockfish("16/bin/stockfish")
-#     eco_db = EcoDB("eco/openings.json")
-
-#     game_processor = GameProcessor(tree, stockfish, eco_db, "matyasj")
-
-#     game_processor.process_game(game_str)
-
-#     print(tree)
-
-#     TODO need to identify how to test the tree

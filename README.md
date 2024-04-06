@@ -19,7 +19,7 @@ $ make install
 The analysis pipeline can also be run as a CLI tool to analyse all the games of a user.
 
 ```bash
-make analyse --player-id <PLAYER_ID>
+make analyse player-id=<PLAYER_ID>
 ```
 
 The results are saved locally in `tree.json`, which is the `Tree` object persisted to disk.

@@ -1,7 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
-from collections import defaultdict, Counter
 
 import numpy as np
 
@@ -34,7 +33,9 @@ class Opening(BaseModel):
     def __str__(self):
         return self.__repr__()
 
-    def __add__(self, other: "Opening"):
+    def __add__(self, other: Optional["Opening"]) -> "Opening":
+        if other is None:
+            return self
         self.dates += other.dates
         self.results += other.results
         self.occurrence += other.occurrence
@@ -45,6 +46,10 @@ class Opening(BaseModel):
         # TODO Stockfish is non-deterministic when running on multiple cores
         # assert self.best_next_move == other.best_next_move, "The best next move should be the same for the same FEN"
         return self
+
+    def __radd__(self, other: Optional["Opening"]) -> "Opening":
+        """This allows None + Opening to use Opening's __add__"""
+        return self.__add__(other)
 
     def partition_by_colour(self, colour: PlayerColour) -> Optional["Opening"]:
         """Partitions the opening by colour"""
