@@ -19,7 +19,7 @@ $ make install
 The analysis pipeline can also be run as a CLI tool to analyse all the games of a user.
 
 ```bash
-poetry run python cli/analyse_openings.py --player-id <PLAYER-ID> --limit <LIMIT> --num-workers <NUM-WORKERS>
+$ poetry run python cli/analyse_openings.py --player-id <PLAYER-ID> --limit <LIMIT> --num-workers <NUM-WORKERS>
 ```
 
 The results are saved locally in `tree.json`, which is the `Tree` object persisted to disk.
@@ -32,7 +32,7 @@ Depending on the number of games and the machine running the CLI, this can take 
 There's a streamlit app with a simple UI that helps with interacting with the openings data.
 
 ```bash
-make vis
+$ make vis
 ```
 
 If the CLI has been run for the user, then the app will use the cached assets (saved games and tree persisted to disk). Otherwise it'll start analysis to create these assets.
