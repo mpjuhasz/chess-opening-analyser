@@ -24,10 +24,13 @@ class EcoDB:
                 "num_moves": int,
             }
         """
-        rows = self.openings[self.openings.fen == fen].to_dict(orient="records")
-        if rows:
-            row = rows[0]
+        rows = self.openings[self.openings.fen == fen]
+        if rows.shape[0] > 0:
+            row = rows.to_dict(orient="records")[0]
             row["num_moves"] = len(row.get("moves", "").split(" "))
+            row["index"] = rows.index.tolist()[
+                0
+            ]  # index from the DB, for uniqueness later in the UI
             return row
         else:
             return {}

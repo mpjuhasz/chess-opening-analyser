@@ -11,6 +11,7 @@ class Opening(BaseModel):
     fen: str
     eco: str
     name: str
+    index: int
     num_moves: int
     colour: list[PlayerColour] = []
     dates: list[datetime] = []
@@ -62,6 +63,7 @@ class Opening(BaseModel):
             fen=self.fen,
             eco=self.eco,
             name=self.name,
+            index=self.index,
             num_moves=self.num_moves,
             colour=[self.colour[i] for i in indices],
             dates=[self.dates[i] for i in indices],

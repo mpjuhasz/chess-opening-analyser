@@ -9,6 +9,7 @@ def test_init_opening():
         fen="rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -",
         name="Neo-Gr\u00fcnfeld Defense",
         num_moves=6,
+        index=1,
     )
 
     op.update_opening(
@@ -32,6 +33,7 @@ def test_partitioning():
         fen="rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -",
         name="Neo-Gr\u00fcnfeld Defense",
         num_moves=6,
+        index=1,
         colour=[PlayerColour.W, PlayerColour.B],
         dates=[datetime.now(), datetime.now()],
         results=[0, 1],
@@ -58,6 +60,7 @@ def test_add():
         fen="rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -",
         name="Neo-Gr\u00fcnfeld Defense",
         num_moves=6,
+        index=1,
         colour=[PlayerColour.W, PlayerColour.B],
         dates=[datetime.now(), datetime.now()],
         results=[0, 1],

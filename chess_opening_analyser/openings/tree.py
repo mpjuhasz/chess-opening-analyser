@@ -6,6 +6,7 @@ from typing import Optional
 from functools import reduce
 
 import json
+import re
 from datetime import datetime
 
 
@@ -38,6 +39,7 @@ class Tree:
                 name="Root",
                 eco="ROOT",
                 num_moves=0,
+                index=-1,
             )
         }
         self.edges: dict[str, dict[PlayerColour, Counter]] = defaultdict(initialiser)
@@ -245,6 +247,7 @@ class Tree:
 
     def get_opening_by_name_and_move(self, name: str, move: int) -> Optional[Opening]:
         """Gets an opening by name and move"""
+        name = re.sub(r"\[[^\]]*\]", "", name).strip()
         for opening in self.nodes.values():
             if opening.name == name and opening.num_moves == move:
                 return opening
