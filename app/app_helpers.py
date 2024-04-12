@@ -6,6 +6,7 @@ from chess_opening_analyser.visualiser.visualiser import Visualiser
 
 import streamlit as st
 import pandas as pd
+import re
 
 
 def color_value(val):
@@ -92,7 +93,10 @@ def single_opening_page(player_id):
     df = Transformer.to_opening_strength(st.session_state.trees[player_id])
 
     opening_families = sorted(
-        set(of.split(":")[0] for of in df.index.get_level_values(0))
+        set(
+            re.sub(r"\[[^\]]*\]", "", of.split(":")[0]).strip()
+            for of in df.index.get_level_values(0)
+        )
     )
 
     family = st.selectbox(

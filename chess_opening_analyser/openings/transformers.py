@@ -137,9 +137,11 @@ class Transformer:
                 if c_opening is None:
                     continue
 
+                # NOTE: index is pulled across to insure uniqueness at this stage
+                # It is the FEN that is unique, but we wouldn't want to use that in the UI.
                 rows.append(
                     (
-                        f"{node.name} [{node.eco}]{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
+                        f"{node.name} [{node.index}]{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
                         *(getattr(c_opening, a) for a in attributes),
                     )
                 )

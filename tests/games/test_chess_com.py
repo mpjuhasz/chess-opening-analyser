@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 def test_chess_com(mocker):
     game_str = load_game()
     mocker.patch(
-        "next_move.games.chess_com.ChessCom._get_games_in_month",
+        "chess_opening_analyser.games.chess_com.ChessCom._get_games_in_month",
         return_value=[game_str],
     )
     mocker.patch(
-        "next_move.games.chess_com.ChessCom._get_monthly_archive",
+        "chess_opening_analyser.games.chess_com.ChessCom._get_monthly_archive",
         return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"],
     )
     games_api = ChessCom()
@@ -35,11 +35,11 @@ def test_chess_com_2():
 def test_all_games(mocker):
     game_str = load_game()
     mocker.patch(
-        "next_move.games.chess_com.ChessCom._get_games_in_month",
+        "chess_opening_analyser.games.chess_com.ChessCom._get_games_in_month",
         return_value=[game_str],
     )
     mocker.patch(
-        "next_move.games.chess_com.ChessCom._get_monthly_archive",
+        "chess_opening_analyser.games.chess_com.ChessCom._get_monthly_archive",
         return_value=["https://api.chess.com/pub/player/matyasj/games/2023/06"],
     )
     games_api = ChessCom()
@@ -48,12 +48,3 @@ def test_all_games(mocker):
     assert isinstance(games[0], str)
     game = pgn.read_game(io.StringIO(games[0]))
     assert isinstance(game, pgn.Game)
-
-
-# NOTE: this test is a bit excessive, and it takes a long time to run
-# def test_all_games_online():
-#     games_api = ChessCom()
-#     start_time = datetime.now()
-#     games = games_api.get_all_games("matyasj", caching=False)
-#     assert datetime.now() - start_time < timedelta(seconds=20)
-#     assert len(games) > 10000

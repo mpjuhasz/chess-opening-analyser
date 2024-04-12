@@ -14,6 +14,7 @@ def load_tree():
         eco="C20",
         name="King's pawn",
         num_moves=1,
+        index=1,
         colour=[PlayerColour.W],
         dates=[datetime.now()],
         results=[0],
@@ -28,6 +29,7 @@ def load_tree():
         fen="rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR w KQkq -",
         name="Neo-Gr\u00fcnfeld Defense",
         num_moves=6,
+        index=2,
         colour=[PlayerColour.W, PlayerColour.B, PlayerColour.B, PlayerColour.W],
         dates=[
             datetime.now(),
@@ -63,9 +65,9 @@ def test_tree_to_timeline():
 
     assert isinstance(timeline.index, pd.MultiIndex)
     assert timeline.index.names == ["name", "move", "colour"]
-    assert timeline.index.levels[0].tolist() == ["King's pawn [C20]", "Neo-Grünfeld Defense [D70]"]  # type: ignore
+    assert timeline.index.levels[0].tolist() == ["King's pawn [1]", "Neo-Grünfeld Defense [2]"]  # type: ignore
     assert (
-        timeline.loc[("Neo-Grünfeld Defense [D70]", 6, "Black")][datetime(2022, 12, 31)]
+        timeline.loc[("Neo-Grünfeld Defense [2]", 6, "Black")][datetime(2022, 12, 31)]
         == 2.0
     )
 
@@ -83,18 +85,16 @@ def test_tree_to_opening_strength():
         "mean_score_in_n_moves",
     ]
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [D70]", 6, "Black"))]["occurrence"]
+        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))]["occurrence"]
         == 2
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [D70]", 6, "Black"))][
+        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))][
             "mean_following_game_scores"
         ]
         == 0.31
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [D70]", 6, "Black"))][
-            "mean_results"
-        ]
+        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))]["mean_results"]
         == 0.50
     )
