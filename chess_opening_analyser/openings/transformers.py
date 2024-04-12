@@ -139,7 +139,7 @@ class Transformer:
 
                 rows.append(
                     (
-                        f"{node.name}{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
+                        f"{node.name} [{node.eco}]{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
                         *(getattr(c_opening, a) for a in attributes),
                     )
                 )
