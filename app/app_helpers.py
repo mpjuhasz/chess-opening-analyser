@@ -54,7 +54,9 @@ def timeline_page(player_id: str):
 
 def opening_strength_page(player_id: str):
     """Creates the opening strength page with the table of opening strengths"""
-    df = Transformer.to_opening_strength(st.session_state.trees[player_id])
+    df = Transformer.tree_to_opening_strength(
+        st.session_state.trees[player_id], unique_names=True
+    )
 
     col1, col2 = st.columns(2)
 
@@ -90,7 +92,9 @@ def opening_strength_page(player_id: str):
 
 def single_opening_page(player_id):
     """Creates the single opening page"""
-    df = Transformer.to_opening_strength(st.session_state.trees[player_id])
+    df = Transformer.tree_to_opening_strength(
+        st.session_state.trees[player_id], unique_names=False
+    )
 
     opening_families = sorted(
         set(

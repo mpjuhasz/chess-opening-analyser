@@ -64,7 +64,7 @@ class Transformer:
         occurrence_threshold: int = 0,
     ) -> pd.DataFrame:
         """Creates a timeline of the openings in the tree, resampled by the breakdown period"""
-        df = cls._tree_to_df(tree, ["dates"])
+        df = cls._tree_to_df(tree, ["dates"], unique_names=False)
         df = df.explode("dates", ignore_index=True)
 
         def resample_and_merge(group: pd.DataFrame):
@@ -88,7 +88,7 @@ class Transformer:
         return pivot_df
 
     @classmethod
-    def to_opening_strength(cls, tree: Tree) -> pd.DataFrame:
+    def tree_to_opening_strength(cls, tree: Tree, unique_names: bool) -> pd.DataFrame:
         """
         Creates a DataFrame of the strength of each opening
 
@@ -100,7 +100,7 @@ class Transformer:
         """
         score_columns = ["following_game_scores", "results", "score_in_n_moves"]
 
-        df = cls._tree_to_df(tree, ["occurrence"] + score_columns)
+        df = cls._tree_to_df(tree, ["occurrence"] + score_columns, unique_names)
 
         for col in score_columns:
             df[f"mean_{col}"] = df[col].apply(np.mean)
@@ -125,7 +125,9 @@ class Transformer:
         )
 
     @classmethod
-    def _tree_to_df(cls, tree: Tree, attributes: list[str]) -> pd.DataFrame:
+    def _tree_to_df(
+        cls, tree: Tree, attributes: list[str], unique_names: bool
+    ) -> pd.DataFrame:
         """Transforms the tree to a DataFrame, with the standard name column as merged multi-index with name, move and colour"""
         all_nodes = list(tree.nodes.values())
 
@@ -139,9 +141,14 @@ class Transformer:
 
                 # NOTE: index is pulled across to insure uniqueness at this stage
                 # It is the FEN that is unique, but we wouldn't want to use that in the UI.
+                if unique_names:
+                    name = f"{node.name} [{node.index}]"
+                else:
+                    name = node.name
+
                 rows.append(
                     (
-                        f"{node.name} [{node.index}]{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
+                        f"{name}{cls.SEPARATOR}{node.num_moves}{cls.SEPARATOR}{c.value}",
                         *(getattr(c_opening, a) for a in attributes),
                     )
                 )
