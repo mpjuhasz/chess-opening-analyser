@@ -30,9 +30,9 @@ class Stockfish:
                 "best_move": "",
             }
         stockfish_analysis = self.engine.analyse(board, engine.Limit(depth=self.depth))
-        assert (
-            "score" in stockfish_analysis
-        ), "Stockfish analysis did not return a score"
+        assert "score" in stockfish_analysis, (
+            "Stockfish analysis did not return a score"
+        )
         assert "pv" in stockfish_analysis, "Stockfish analysis did not return a pv"
         return {
             "score": self._get_probability(stockfish_analysis["score"], colour_played),

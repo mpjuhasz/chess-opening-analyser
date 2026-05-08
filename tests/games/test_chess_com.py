@@ -1,8 +1,11 @@
-from chess_opening_analyser.games.chess_com import ChessCom
-from chess import pgn
 import io
-from .data_loader import load_game
 from datetime import datetime, timedelta
+
+from chess import pgn
+
+from chess_opening_analyser.games.chess_com import ChessCom
+
+from .data_loader import load_game
 
 # game attributes: 'parent', 'move', 'variations', 'comment', 'starting_comment', 'nags', 'headers', 'errors'
 
@@ -28,7 +31,7 @@ def test_chess_com(mocker):
 def test_chess_com_2():
     games_api = ChessCom()
     start_time = datetime.now()
-    games = games_api._get_games("matyasj", months=[f"2022/{m+1}" for m in range(12)])
+    _ = games_api._get_games("matyasj", months=[f"2022/{m + 1}" for m in range(12)])
     assert datetime.now() - start_time < timedelta(milliseconds=9000)
 
 

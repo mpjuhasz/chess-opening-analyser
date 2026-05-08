@@ -4,7 +4,6 @@ from chess_opening_analyser.openings.tree import Tree
 from chess_opening_analyser.engine.stockfish import Stockfish
 from chess_opening_analyser.opening_directory import EcoDB
 from chess_opening_analyser.games import PlayerColour
-from chess_opening_analyser.logger import logger
 
 import io
 

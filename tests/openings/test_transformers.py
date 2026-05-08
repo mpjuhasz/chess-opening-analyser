@@ -1,10 +1,11 @@
 from datetime import datetime
+
+import pandas as pd
+
 from chess_opening_analyser.games import PlayerColour
 from chess_opening_analyser.openings.opening import Opening
 from chess_opening_analyser.openings.transformers import Transformer
 from chess_opening_analyser.openings.tree import Tree
-
-import pandas as pd
 
 
 def load_tree():
@@ -32,7 +33,7 @@ def load_tree():
         index=2,
         colour=[PlayerColour.W, PlayerColour.B, PlayerColour.B, PlayerColour.W],
         dates=[
-            datetime.now(),
+            datetime(2023, 12, 1),
             datetime(2022, 1, 1),
             datetime(2022, 1, 16),
             datetime(2023, 10, 10),
@@ -60,7 +61,7 @@ def test_tree_to_timeline():
     assert timeline.columns.tolist() == [
         datetime(2022, 12, 31),
         datetime(2023, 12, 31),
-        datetime(2024, 12, 31),
+        datetime(datetime.now().year, 12, 31),
     ]
 
     assert isinstance(timeline.index, pd.MultiIndex)
@@ -85,17 +86,17 @@ def test_tree_to_opening_strength():
         "mean_score_in_n_moves",
     ]
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))]["occurrence"]
+        opening_strength.loc[("Neo-Grünfeld Defense [2]", 6, "Black")]["occurrence"]
         == 2
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))][
+        opening_strength.loc[("Neo-Grünfeld Defense [2]", 6, "Black")][
             "mean_following_game_scores"
         ]
         == 0.31
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense [2]", 6, "Black"))]["mean_results"]
+        opening_strength.loc[("Neo-Grünfeld Defense [2]", 6, "Black")]["mean_results"]
         == 0.50
     )
 
@@ -112,16 +113,14 @@ def test_tree_to_opening_strength_2():
         "mean_results",
         "mean_score_in_n_moves",
     ]
+    assert opening_strength.loc[("Neo-Grünfeld Defense", 6, "Black")]["occurrence"] == 2
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["occurrence"] == 2
-    )
-    assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))][
+        opening_strength.loc[("Neo-Grünfeld Defense", 6, "Black")][
             "mean_following_game_scores"
         ]
         == 0.31
     )
     assert (
-        opening_strength.loc[(("Neo-Grünfeld Defense", 6, "Black"))]["mean_results"]
+        opening_strength.loc[("Neo-Grünfeld Defense", 6, "Black")]["mean_results"]
         == 0.50
     )

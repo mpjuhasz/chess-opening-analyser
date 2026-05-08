@@ -3,7 +3,6 @@ from functools import reduce
 
 import numpy as np
 from chess_opening_analyser.games import PlayerColour
-from chess_opening_analyser.openings.opening import Opening
 from chess_opening_analyser.openings.tree import Tree
 
 import pandas as pd
@@ -69,7 +68,9 @@ class Transformer:
 
         def resample_and_merge(group: pd.DataFrame):
             resampled = (
-                group.resample(resample_interval, on="dates").size().reset_index(name="count")  # type: ignore
+                group.resample(resample_interval, on="dates")
+                .size()
+                .reset_index(name="count")  # type: ignore
             )
             return resampled
 

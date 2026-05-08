@@ -11,7 +11,6 @@ from tqdm import tqdm
 from typing import Optional
 
 from dotenv import load_dotenv, find_dotenv
-from multiprocessing import Pool
 
 import click
 import os
